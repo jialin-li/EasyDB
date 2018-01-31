@@ -1,18 +1,23 @@
 package main
 
 import (
+	//"EasyDB/client"
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
+
+const clientPath = "/u/wlsaidhi/go/bin/client"
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		text, _ := reader.ReadString('\n')
 
-		//substrings := strings.Split(text, " ")
+		client := exec.Command(clientPath)
+		client.Start()
 
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":

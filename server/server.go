@@ -1,7 +1,7 @@
 package main
 
 import (
-	"shared"
+	"github.com/jialin-li/EasyDB/shared"
 )
 
 type KVServer struct {
