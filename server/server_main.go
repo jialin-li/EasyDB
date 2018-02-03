@@ -2,13 +2,28 @@ package main
 
 import (
 	//"errors"
+	"bufio"
+	"flag"
+	"fmt"
 	"log"
 	"net"
 	"net/rpc"
+	"os"
+	"strings"
 	// "github.com/jialin-li/EasyDB/shared" //Path to the package contains shared struct
 )
 
 func main() {
+
+	// Use the -term flag to run  the server as a command line program. Server
+	// will wait for commands from stdin. Useful for debugging and for a real
+	// distributed system.
+	termPtr := flag.Bool("term", false, "run as program")
+
+	flag.Parse()
+	if *termPtr {
+		parseCommands()
+	}
 
 	//Creating an instance of struct which implement Arith interface
 	kv := new(KVServer)
@@ -29,4 +44,32 @@ func main() {
 	// This statement links rpc server to the socket, and allows rpc server to accept
 	// rpc request coming from that socket.
 	server.Accept(l)
+}
+
+func parseCommands() {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		text, _ := reader.ReadString('\n')
+
+		switch strs := strings.Split(text, " "); strs[0] {
+		case "joinServer":
+			fmt.Println(strs[1])
+		case "killServer":
+			fmt.Println(strs[1])
+		case "breakConnection":
+			fmt.Println(strs[1])
+		case "createConnection":
+			fmt.Println(strs[1])
+		case "stabilize":
+			fmt.Println(strs[1])
+		case "printStore":
+			fmt.Println(strs[1])
+		case "put":
+			fmt.Println(strs[1])
+		case "get":
+			fmt.Println(strs[1])
+		default:
+			fmt.Println("bad command")
+		}
+	}
 }
