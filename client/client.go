@@ -5,6 +5,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
+	"net"
+	"net/rpc"
 	"os"
 	"strings"
 )
@@ -21,7 +24,17 @@ func main() {
 		parseCommands()
 	}
 
-	client(5)
+	// Tries to connect to localhost:1234 (The port on which rpc server is
+	// listening)
+	conn, err := net.Dial("tcp", "localhost:1234")
+	if err != nil {
+		log.Fatal("Connection:", err)
+	} else {
+		fmt.Println("sucess?")
+	}
+
+	client := &Client{client: rpc.NewClient(conn)}
+	fmt.Println(client.Connect("please work"))
 }
 
 func parseCommands() {
