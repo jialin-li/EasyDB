@@ -11,7 +11,7 @@ type Client struct {
 	client *rpc.Client
 }
 
-func (t *Client) Terminate() error {
+func (t *Client) Terminate(args *shared.Args, reply *shared.Response) error {
 	return nil
 }
 

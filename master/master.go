@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const clientPath = "/u/wlsaidhi/go/bin/client"
+const clientPath = "./client"
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)

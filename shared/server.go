@@ -15,7 +15,7 @@ type Response struct {
 
 type Server interface {
 	// Terminate a server
-	Terminate() error
+	Terminate(args *Args, reply *Response) error
 	// Ask the server to connect to another server
 	Connect(args *Args, reply *Response) error
 	// Send back the current key value store

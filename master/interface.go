@@ -7,7 +7,7 @@ import (
 
 type Server int
 
-func (t *Server) Terminate() error {
+func (t *Server) Terminate(args *shared.Args, reply *shared.Response) error {
 	return nil
 }
 func (t *Server) Connect(args *shared.Args, reply *shared.Response) error {
