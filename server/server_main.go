@@ -3,9 +3,8 @@ package main
 import (
 	//"errors"
 	"bufio"
-	"flag"
+	// "flag"
 	"fmt"
-	"log"
 	"net"
 	"net/rpc"
 	"os"
@@ -18,31 +17,37 @@ func main() {
 	// Use the -term flag to run  the server as a command line program. Server
 	// will wait for commands from stdin. Useful for debugging and for a real
 	// distributed system.
-	termPtr := flag.Bool("term", false, "run as program")
+	// termPtr := flag.Bool("term", false, "run as program")
 
-	flag.Parse()
-	if *termPtr {
-		parseCommands()
-	}
+	// flag.Parse()
+	// if *termPtr {
+	// 	parseCommands()
+	// }
+	fmt.Println("In server main")
 
-	//Creating an instance of struct which implement Arith interface
+	//Creating an instance of struct which implement Server interface
 	kv := new(KVServer)
 
+	fmt.Println("Created new server")
+
 	// Register a new rpc server (In most cases, you will use default server only)
-	// And register struct we created above by name "Arith"
+	// And register struct we created above by name "kv"
 	// The wrapper method here ensures that only structs which implement Arith interface
 	// are allowed to register themselves.
 	server := rpc.NewServer()
 	server.RegisterName("KVServer", kv)
 	// Get the port from OS args
 	// Listen for incoming tcp packets on specified port.
+	fmt.Println("Registered new server, about to listen ")
+
 	l, e := net.Listen("tcp", ":1234")
 	if e != nil {
-		log.Fatal("listen error:", e)
+		fmt.Printf("listen error: \n", e)
 	}
 
 	// This statement links rpc server to the socket, and allows rpc server to accept
 	// rpc request coming from that socket.
+
 	server.Accept(l)
 }
 
