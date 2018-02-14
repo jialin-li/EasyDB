@@ -1,9 +1,9 @@
 package main
 
 import (
-	//"errors"
 	"bufio"
-	// "flag"
+	// "errors"
+	"flag"
 	"fmt"
 	"net"
 	"net/rpc"
@@ -17,18 +17,15 @@ func main() {
 	// Use the -term flag to run  the server as a command line program. Server
 	// will wait for commands from stdin. Useful for debugging and for a real
 	// distributed system.
-	// termPtr := flag.Bool("term", false, "run as program")
+	termPtr := flag.Bool("term", false, "run as program")
 
-	// flag.Parse()
-	// if *termPtr {
-	// 	parseCommands()
-	// }
-	fmt.Println("In server main")
+	flag.Parse()
+	if *termPtr {
+		parseCommands()
+	}
 
 	//Creating an instance of struct which implement Server interface
 	kv := new(KVServer)
-
-	fmt.Println("Created new server")
 
 	// Register a new rpc server (In most cases, you will use default server only)
 	// And register struct we created above by name "kv"
