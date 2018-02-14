@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
+//	"log"
 	"net"
 	"net/rpc"
 	"os"
@@ -34,16 +34,18 @@ func main() {
 	// Create a struct, that mimics all methods provided by interface.
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
 	client := &KVClient{client: rpc.NewClient(conn)}
+	test(client);
 }
 
-func test(c KVClient) {
+func test(c *KVClient) {
 	// testing client
 	args := &shared.Args{"", "Hi", "World!"}
 	resp := &shared.Response{}
-	if err := client.Put(args, resp); err != nil 
-		fmt.Printf("Error returned from client.Put %v \n", err)
-	else 
+	if err := c.Put(args, resp); err != nil{
+		fmt.Printf("Error returned from client.Put %v \n", err)	
+	} else {
 		fmt.Printf("Heard back from server %s \n", resp.Result)
+	}
 }
 
 func parseCommands() {
