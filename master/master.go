@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	
+
 	"github.com/jialin-li/EasyDB/shared"
 )
 
@@ -20,7 +20,7 @@ type Connection struct {
 	Port string
 	Conn net.Listener
 }
-type Master struct{}
+type Master int
 
 var connections map[int]Connection
 
@@ -29,9 +29,8 @@ const clientPath = "./client"
 
 var port = 1234
 
-type Server int
-
-func (t *Server) Connect(args *shared.Args, reply *shared.Response) error {
+//  ===================   master handler functions ===================
+func (t *Master) Notify(args *shared.Args, reply *shared.Response) error {
 	*reply = shared.Response{"it worked"}
 	fmt.Println(args.Msg, args.Key, args.Value)
 	// add client connection to map
@@ -101,24 +100,16 @@ func main() {
 }
 
 // not sure about this?????
-func registerServer(server *rpc.Server, s *shared.Server) {
+func registerServer(server *rpc.Server, s shared.Master) {
 	server.Register(s)
 }
 
-//  ===================   master handler functions ===================
 func joinServer(id int) error {
 
 	// check if a server with id already exists
 	if _, ok := connections[id]; !ok {
 		return errors.New("joinServer: server id already exists!")
 	}
-
-	// create an instance of struct that implements Server interface
-	serverInterface := new(shared.Server)
-
-	// register a new rpc server
-	rpcServer := rpc.NewServer()
-	registerServer(rpcServer, serverInterface)
 
 	// start a new client
 	server := exec.Command(serverPath)
@@ -137,16 +128,13 @@ func joinClient(clientId, serverId int) error {
 	// start a new client
 	client := exec.Command(clientPath)
 	err := client.Start()
-	if err != nil {
-		return err
-	}
 
 	return err
 }
 
 func listen(port int) error {
-	// create an instance of struct that implements Server interface
-	serverInterface := new(shared.Server)
+	// create an instance of struct that implements Master interface
+	serverInterface := new(Master)
 
 	// register a new rpc server
 	rpcServer := rpc.NewServer()

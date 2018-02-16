@@ -1,20 +1,35 @@
 package main
 
 import (
-//	"bufio"
-//	"flag"
+	//	"bufio"
+	//	"flag"
 	"fmt"
 	"log"
-//	"net"
+	//	"net"
 	"net/rpc"
-//	"os"
-//	"strings"
+	//	"os"
+	//	"strings"
 
 	"github.com/jialin-li/EasyDB/shared"
 )
 
 type KVClient struct {
 	client *rpc.Client
+}
+
+func (t *KVClient) Notify(msg string) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, "key", "value"}
+	var reply shared.Response
+	err := t.client.Call("Master.Notify", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	//*reply = shared.Response{"it worked"}
+	//fmt.Println(args.Msg, args.Key, args.Value)
+	// add client connection to map
+	//connections[clientId] = Connection{1, port, conn}
+	return nil
 }
 
 func (t *KVClient) Terminate(args *shared.Args, reply *shared.Response) error {
