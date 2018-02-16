@@ -44,6 +44,7 @@ type Client interface {
 	// No more new write requests will be send until the next write
 	// Stabilize(args *Args, reply *Response) error
 }
+
 type Master interface {
 	// Notify the master that it's up
 	Notify(args *Args, reply *Response) error

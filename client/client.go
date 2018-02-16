@@ -17,9 +17,9 @@ type KVClient struct {
 	client *rpc.Client
 }
 
-func (t *KVClient) Notify(msg string) error {
+func (t *KVClient) callNotify(msg, key, value string) error {
 	fmt.Println("sending", msg)
-	args := &shared.Args{msg, "key", "value"}
+	args := &shared.Args{msg, key, value}
 	var reply shared.Response
 	err := t.client.Call("Master.Notify", args, &reply)
 	if err != nil {
@@ -27,24 +27,11 @@ func (t *KVClient) Notify(msg string) error {
 	}
 	//*reply = shared.Response{"it worked"}
 	//fmt.Println(args.Msg, args.Key, args.Value)
-	// add client connection to map
-	//connections[clientId] = Connection{1, port, conn}
 	return nil
 }
 
-func (t *KVClient) Terminate(args *shared.Args, reply *shared.Response) error {
+func (t *KVClient) Connect(args *shared.Args, reply *shared.Response) error {
 	return nil
-}
-
-func (t *KVClient) Connect(msg string) shared.Response {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, "key", "value"}
-	var reply shared.Response
-	err := t.client.Call("Server.Connect", args, &reply)
-	if err != nil {
-		log.Fatal("server error:", err)
-	}
-	return reply
 }
 
 // Disconnect if we are clients of any other servers

@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"errors"
+	//"errors"
 	"fmt"
 	"log"
 	"net"
@@ -15,31 +15,81 @@ import (
 	"github.com/jialin-li/EasyDB/shared"
 )
 
-type Connection struct {
+type connection struct {
 	Type int
-	Port string
-	Conn net.Listener
+	Port int
+	Conn net.Conn
 }
-type Master int
 
-var connections map[int]Connection
+type Master struct {
+	client *rpc.Client
+}
+
+//  ===================   master handler functions ===================
+func (t *Master) Notify(args *shared.Args, reply *shared.Response) error {
+	*reply = shared.Response{"it worked"}
+	fmt.Println(args.Msg, args.Key, args.Value)
+	id, err := strconv.Atoi(args.Value)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Dial back
+	switch t, _ := strconv.Atoi(args.Key); t {
+	case shared.ClientType:
+		port := shared.ClientPort + id
+		conn, err := net.Dial("tcp",
+			"localhost:"+strconv.Itoa(port))
+		if err != nil {
+			fmt.Printf("Connection: %e \n", err)
+		}
+		// add client connection to map
+		clientConnections[id] = connection{shared.ClientType, port, conn}
+
+		client := &Master{client: rpc.NewClient(conn)}
+		client.callPut("Put request to client", "key", "new value")
+
+	case shared.ServerType:
+		port := shared.ServerPort + id
+		conn, err := net.Dial("tcp",
+			"localhost:"+strconv.Itoa(port))
+		if err != nil {
+			fmt.Printf("Connection: %e \n", err)
+		}
+		// add server connection to map
+		serverConnections[id] = connection{shared.ServerType, port, conn}
+	default:
+		log.Println("Notify failed")
+	}
+	return nil
+}
+
+func (t *Master) callPut(msg, key, value string) error {
+	args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("KVClient.Put", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	return nil
+}
+
+var serverIds map[int]int
+var clientIds map[int]int
+var clientId = 0
+var serverId = 0
+var clientConnections map[int]connection
+var serverConnections map[int]connection
 
 const serverPath = "./server"
 const clientPath = "./client"
 
 var port = 1234
 
-//  ===================   master handler functions ===================
-func (t *Master) Notify(args *shared.Args, reply *shared.Response) error {
-	*reply = shared.Response{"it worked"}
-	fmt.Println(args.Msg, args.Key, args.Value)
-	// add client connection to map
-	//connections[clientId] = Connection{1, port, conn}
-	return nil
-}
-
 func main() {
-	connections = make(map[int]Connection)
+	clientConnections = make(map[int]connection)
+	serverConnections = make(map[int]connection)
 
 	listen(port)
 
@@ -99,17 +149,12 @@ func main() {
 	}
 }
 
-// not sure about this?????
-func registerServer(server *rpc.Server, s shared.Master) {
-	server.Register(s)
-}
-
 func joinServer(id int) error {
 
 	// check if a server with id already exists
-	if _, ok := connections[id]; !ok {
-		return errors.New("joinServer: server id already exists!")
-	}
+	//if _, ok := serverConnections[id]; !ok {
+	//return errors.New("joinServer: server id already exists!")
+	//}
 
 	// start a new client
 	server := exec.Command(serverPath)
@@ -121,15 +166,25 @@ func joinServer(id int) error {
 func joinClient(clientId, serverId int) error {
 
 	// check if a client with id already exists
-	if _, ok := connections[clientId]; ok {
-		return errors.New("joinClient: client id already exists!")
-	}
+	//if _, ok := clientConnections[clientId]; ok {
+	//return errors.New("joinClient: client id already exists!")
+	//}
 
 	// start a new client
-	client := exec.Command(clientPath)
+	client := exec.Command(clientPath, strconv.Itoa(getClientId()))
 	err := client.Start()
 
 	return err
+}
+
+func getClientId() int {
+	clientId++
+	return clientId - 1
+}
+
+func getServerId() int {
+	serverId++
+	return serverId - 1
 }
 
 func listen(port int) error {
@@ -138,7 +193,7 @@ func listen(port int) error {
 
 	// register a new rpc server
 	rpcServer := rpc.NewServer()
-	registerServer(rpcServer, serverInterface)
+	rpcServer.Register(serverInterface)
 
 	// Listen for incoming tcp packets on specified port.
 	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
