@@ -1,11 +1,10 @@
 package main
 
 import (
-	//"errors"
 	"bufio"
+	// "errors"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/rpc"
 	"os"
@@ -25,24 +24,27 @@ func main() {
 		parseCommands()
 	}
 
-	//Creating an instance of struct which implement Arith interface
+	//Creating an instance of struct which implement Server interface
 	kv := new(KVServer)
 
 	// Register a new rpc server (In most cases, you will use default server only)
-	// And register struct we created above by name "Arith"
+	// And register struct we created above by name "kv"
 	// The wrapper method here ensures that only structs which implement Arith interface
 	// are allowed to register themselves.
 	server := rpc.NewServer()
 	server.RegisterName("KVServer", kv)
 	// Get the port from OS args
 	// Listen for incoming tcp packets on specified port.
+	fmt.Println("Registered new server, about to listen ")
+
 	l, e := net.Listen("tcp", ":1234")
 	if e != nil {
-		log.Fatal("listen error:", e)
+		fmt.Printf("listen error: \n", e)
 	}
 
 	// This statement links rpc server to the socket, and allows rpc server to accept
 	// rpc request coming from that socket.
+
 	server.Accept(l)
 }
 

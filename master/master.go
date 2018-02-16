@@ -1,11 +1,9 @@
 package main
 
 import (
-	//"EasyDB/client"
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/jialin-li/EasyDB/shared"
 	"log"
 	"net"
 	"net/rpc"
@@ -13,6 +11,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	
+	"github.com/jialin-li/EasyDB/shared"
 )
 
 type Connection struct {
@@ -20,6 +20,7 @@ type Connection struct {
 	Port string
 	Conn net.Listener
 }
+type Master struct{}
 
 var connections map[int]Connection
 
@@ -99,10 +100,12 @@ func main() {
 	}
 }
 
-func registerServer(server *rpc.Server, s shared.Server) {
+// not sure about this?????
+func registerServer(server *rpc.Server, s *shared.Server) {
 	server.Register(s)
 }
 
+//  ===================   master handler functions ===================
 func joinServer(id int) error {
 
 	// check if a server with id already exists
@@ -111,7 +114,7 @@ func joinServer(id int) error {
 	}
 
 	// create an instance of struct that implements Server interface
-	serverInterface := new(Server)
+	serverInterface := new(shared.Server)
 
 	// register a new rpc server
 	rpcServer := rpc.NewServer()
@@ -143,7 +146,7 @@ func joinClient(clientId, serverId int) error {
 
 func listen(port int) error {
 	// create an instance of struct that implements Server interface
-	serverInterface := new(Server)
+	serverInterface := new(shared.Server)
 
 	// register a new rpc server
 	rpcServer := rpc.NewServer()

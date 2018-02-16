@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/jialin-li/EasyDB/shared"
 )
 
@@ -34,6 +36,8 @@ func (*KVServer) Stabilize(args *shared.Args, reply *shared.Response) error {
 
 // Put a KV pair
 func (*KVServer) Put(args *shared.Args, reply *shared.Response) error {
+	fmt.Printf("%s:%s \n", args.Key, args.Value)
+	reply.Result = "hello friend"
 	return nil
 }
 

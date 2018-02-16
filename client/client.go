@@ -1,72 +1,54 @@
 package main
 
 import (
-	//"EasyDB/client"
-	"bufio"
-	"flag"
+//	"bufio"
+//	"flag"
 	"fmt"
 	"log"
-	"net"
+//	"net"
 	"net/rpc"
-	"os"
-	"strings"
+//	"os"
+//	"strings"
+
+	"github.com/jialin-li/EasyDB/shared"
 )
 
-func main() {
+type KVClient struct {
+	client *rpc.Client
+}
 
-	// Use the -term flag to run  the client as a command line program. Client
-	// will wait for commands from stdin. Useful for debugging and for a real
-	// distributed system.
-	termPtr := flag.Bool("term", false, "run as program")
+func (t *KVClient) Terminate(args *shared.Args, reply *shared.Response) error {
+	return nil
+}
 
-	flag.Parse()
-	if *termPtr {
-		parseCommands()
-	}
-
-	// Tries to connect to localhost:1234 (The port on which rpc server is
-	// listening)
-	conn, err := net.Dial("tcp", "localhost:1234")
+func (t *KVClient) Connect(msg string) shared.Response {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, "key", "value"}
+	var reply shared.Response
+	err := t.client.Call("Server.Connect", args, &reply)
 	if err != nil {
-		log.Fatal("Connection:", err)
-	} else {
-		fmt.Println("sucess?")
+		log.Fatal("server error:", err)
 	}
-
-	client := &Client{client: rpc.NewClient(conn)}
-	fmt.Println(client.Connect("please work"))
+	return reply
 }
 
-func parseCommands() {
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		text, _ := reader.ReadString('\n')
-
-		switch strs := strings.Split(text, " "); strs[0] {
-		case "joinClient":
-			fmt.Println(strs[1])
-		case "breakConnection":
-			fmt.Println(strs[1])
-		case "createConnection":
-			fmt.Println(strs[1])
-		case "stabilize":
-			fmt.Println(strs[1])
-		case "printStore":
-			fmt.Println(strs[1])
-		case "put":
-			fmt.Println(strs[1])
-		case "get":
-			fmt.Println(strs[1])
-		default:
-			fmt.Println("bad command")
-		}
-	}
+// Disconnect if we are clients of any other servers
+func (t *KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
+	return nil
 }
 
-func client(id int) int {
-	for i := 0; i < id; i++ {
-		fmt.Println("in client")
-	}
-	return 0
+// Put a KV pair
+func (t *KVClient) Put(args *shared.Args, reply *shared.Response) error {
+	// called by the master, will issue request to server
 
+	err := t.client.Call("KVServer.Put", args, reply)
+	if err != nil {
+		fmt.Printf("kvserver error: %e \n", err)
+	}
+	return nil
+}
+
+// Get a Value based on a key
+func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
+	return nil
 }
