@@ -2,15 +2,32 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/jialin-li/EasyDB/shared"
+	"log"
+	"net/rpc"
 )
 
-type KVServer struct {
+type rpcClient struct {
+	client *rpc.Client
 }
 
+func (t *rpcClient) notify(msg, key, value string) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("Master.Notify", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	fmt.Println(reply.Result)
+
+	return nil
+}
+
+type KVServer int
+
 // Terminate a server
-func (*KVServer) Terminate() error {
+func (*KVServer) Terminate(args *shared.Args, reply *shared.Response) error {
 	return nil
 }
 

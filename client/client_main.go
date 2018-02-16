@@ -35,10 +35,11 @@ func main() {
 	// Listen for connections from master and servers
 	listen(shared.ClientPort + clientId)
 
-	// Tries to connect to localhost:1234 (The port on which rpc server is listening)
-	conn, err := net.Dial("tcp", "localhost:1234")
+	// Tries to connect to localhost:1234 (The port on which master's rpc
+	// server is listening)
+	conn, err := net.Dial("tcp", "localhost:"+strconv.Itoa(shared.MasterPort))
 	if err != nil {
-		fmt.Printf("Connectiong: %e \n", err)
+		fmt.Println(err)
 	}
 
 	// Create a struct, that mimics all methods provided by interface.
@@ -81,7 +82,7 @@ func parseCommands() {
 }
 
 func listen(port int) error {
-	// create an instance of struct that implements Master interface
+	// create an instance of struct that implements shared.Client interface
 	serverInterface := new(KVClient)
 
 	// register a new rpc server

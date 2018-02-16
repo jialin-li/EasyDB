@@ -5,11 +5,13 @@ import (
 	// "errors"
 	"flag"
 	"fmt"
+	"github.com/jialin-li/EasyDB/shared" //Path to the package contains shared struct
+	"log"
 	"net"
 	"net/rpc"
 	"os"
+	"strconv"
 	"strings"
-	// "github.com/jialin-li/EasyDB/shared" //Path to the package contains shared struct
 )
 
 func main() {
@@ -23,29 +25,24 @@ func main() {
 	if *termPtr {
 		parseCommands()
 	}
+	args := os.Args[1:]
 
-	//Creating an instance of struct which implement Server interface
-	kv := new(KVServer)
-
-	// Register a new rpc server (In most cases, you will use default server only)
-	// And register struct we created above by name "kv"
-	// The wrapper method here ensures that only structs which implement Arith interface
-	// are allowed to register themselves.
-	server := rpc.NewServer()
-	server.RegisterName("KVServer", kv)
-	// Get the port from OS args
-	// Listen for incoming tcp packets on specified port.
-	fmt.Println("Registered new server, about to listen ")
-
-	l, e := net.Listen("tcp", ":1234")
-	if e != nil {
-		fmt.Printf("listen error: \n", e)
+	serverId, err := strconv.Atoi(args[0])
+	if err != nil {
+		log.Println(err)
 	}
 
-	// This statement links rpc server to the socket, and allows rpc server to accept
-	// rpc request coming from that socket.
+	listen(shared.ServerPort + serverId)
 
-	server.Accept(l)
+	// Tries to connect to localhost:1234 (The port on which master's rpc
+	// server is listening)
+	conn, err := net.Dial("tcp", "localhost:"+strconv.Itoa(shared.MasterPort))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	client := &rpcClient{client: rpc.NewClient(conn)}
+	client.notify("Notifying master", strconv.Itoa(shared.ServerType), args[0])
 }
 
 func parseCommands() {
@@ -74,4 +71,20 @@ func parseCommands() {
 			fmt.Println("bad command")
 		}
 	}
+}
+
+func listen(port int) error {
+	// create an instance of struct that implements shared.Server interface
+	serverInterface := new(KVServer)
+
+	// register a new rpc server
+	rpcServer := rpc.NewServer()
+	rpcServer.Register(serverInterface)
+
+	// Listen for incoming tcp packets on specified port.
+	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err == nil {
+		go rpcServer.Accept(conn)
+	}
+	return err
 }

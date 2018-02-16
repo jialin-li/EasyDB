@@ -5,6 +5,7 @@ const (
 	ServerType = iota
 
 	// port numbers hopefully these are not used?
+	MasterPort = 1234
 	// client ports are determined by 1240 + clientId
 	ClientPort = 1240
 	// server ports are determined by 1250 + serverId
