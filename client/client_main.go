@@ -15,6 +15,8 @@ import (
 	"github.com/jialin-li/EasyDB/shared"
 )
 
+var remoteCall *rpcClient
+
 func main() {
 	// Use the -term flag to run  the client as a command line program. Client
 	// will wait for commands from stdin. Useful for debugging and for a real
@@ -44,22 +46,22 @@ func main() {
 
 	// Create a struct, that mimics all methods provided by interface.
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
-	client := &KVClient{client: rpc.NewClient(conn)}
-	client.callNotify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
+	remoteCall = &rpcClient{client: rpc.NewClient(conn)}
+	remoteCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
 
-	test(client)
+	//test(client)
 }
 
-func test(c *KVClient) {
-	// testing client
-	args := &shared.Args{"", "Hi", "World!"}
-	resp := &shared.Response{}
-	if err := c.Put(args, resp); err != nil {
-		fmt.Printf("Error returned from client.Put %v \n", err)
-	} else {
-		fmt.Printf("Heard back from server %s \n", resp.Result)
-	}
-}
+//func test(c *KVClient) {
+//// testing client
+//args := &shared.Args{"", "Hi", "World!"}
+//resp := &shared.Response{}
+//if err := c.Put(args, resp); err != nil {
+//fmt.Printf("Error returned from client.Put %v \n", err)
+//} else {
+//fmt.Printf("Heard back from server %s \n", resp.Result)
+//}
+//}
 
 func parseCommands() {
 	reader := bufio.NewReader(os.Stdin)

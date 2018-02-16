@@ -11,6 +11,7 @@ type rpcClient struct {
 	client *rpc.Client
 }
 
+// master
 func (t *rpcClient) notify(msg, key, value string) error {
 	fmt.Println("sending", msg)
 	args := &shared.Args{msg, key, value}
