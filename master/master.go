@@ -28,13 +28,20 @@ const clientPath = "./client"
 
 var port = 1234
 
-func getPort() string {
-	port++
-	return ":" + strconv.Itoa(port-1)
+type Server int
+
+func (t *Server) Connect(args *shared.Args, reply *shared.Response) error {
+	*reply = shared.Response{"it worked"}
+	fmt.Println(args.Msg, args.Key, args.Value)
+	// add client connection to map
+	//connections[clientId] = Connection{1, port, conn}
+	return nil
 }
 
 func main() {
 	connections = make(map[int]Connection)
+
+	listen(port)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -112,21 +119,9 @@ func joinServer(id int) error {
 
 	// start a new client
 	server := exec.Command(serverPath)
-	server.Start()
+	err := server.Start()
 
-	port := getPort()
-	// Listen for incoming tcp packets on specified port.
-	if conn, e := net.Listen("tcp", port); e != nil {
-		log.Fatal("listen error:", e)
-		return e
-	} else {
-		fmt.Println("success?")
-		// add server connection to map
-		connections[id] = Connection{0, port, conn}
-		go rpcServer.Accept(conn)
-	}
-
-	return nil
+	return err
 }
 
 func joinClient(clientId, serverId int) error {
@@ -136,6 +131,17 @@ func joinClient(clientId, serverId int) error {
 		return errors.New("joinClient: client id already exists!")
 	}
 
+	// start a new client
+	client := exec.Command(clientPath)
+	err := client.Start()
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func listen(port int) error {
 	// create an instance of struct that implements Server interface
 	serverInterface := new(Server)
 
@@ -143,22 +149,10 @@ func joinClient(clientId, serverId int) error {
 	rpcServer := rpc.NewServer()
 	registerServer(rpcServer, serverInterface)
 
-	// start a new client
-	client := exec.Command(clientPath)
-	client.Start()
-
-	port := getPort()
 	// Listen for incoming tcp packets on specified port.
-	if conn, e := net.Listen("tcp", port); e != nil {
-		log.Fatal("listen error:", e)
-		return e
-	} else {
-		fmt.Println("success?")
-		// add client connection to map
-		connections[clientId] = Connection{1, port, conn}
-
+	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err == nil {
 		go rpcServer.Accept(conn)
 	}
-
-	return nil
+	return err
 }
