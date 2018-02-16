@@ -13,9 +13,12 @@ import (
 
 	// only added for testing
 	"github.com/jialin-li/EasyDB/shared"
+	"sync"
 )
 
 var remoteCall *rpcClient
+
+var wg sync.WaitGroup
 
 func main() {
 	// Use the -term flag to run  the client as a command line program. Client
@@ -48,6 +51,9 @@ func main() {
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
 	remoteCall = &rpcClient{client: rpc.NewClient(conn)}
 	remoteCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
+
+	// now we block
+	wg.Wait()
 
 	//test(client)
 }
@@ -93,8 +99,15 @@ func listen(port int) error {
 
 	// Listen for incoming tcp packets on specified port.
 	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	// if everything goes well, we can call Accept in a go routine and add to
+	// waitgroup to allow main to block after setup
 	if err == nil {
-		go rpcServer.Accept(conn)
+		wg.Add(1)
+		// TODO: handle failure more gracefully
+		go func() {
+			defer wg.Done()
+			rpcServer.Accept(conn)
+		}()
 	}
 	return err
 }

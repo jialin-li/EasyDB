@@ -12,7 +12,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var wg sync.WaitGroup
 
 func main() {
 
@@ -43,6 +46,9 @@ func main() {
 
 	client := &rpcClient{client: rpc.NewClient(conn)}
 	client.notify("Notifying master", strconv.Itoa(shared.ServerType), args[0])
+
+	// now we block
+	wg.Wait()
 }
 
 func parseCommands() {
@@ -83,8 +89,15 @@ func listen(port int) error {
 
 	// Listen for incoming tcp packets on specified port.
 	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	// if everything goes well, we can call Accept in a go routine and add to
+	// waitgroup to allow main to block after setup
 	if err == nil {
-		go rpcServer.Accept(conn)
+		wg.Add(1)
+		// TODO: handle failure more gracefully
+		go func() {
+			defer wg.Done()
+			rpcServer.Accept(conn)
+		}()
 	}
 	return err
 }

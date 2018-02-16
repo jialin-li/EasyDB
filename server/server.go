@@ -7,6 +7,7 @@ import (
 	"net/rpc"
 )
 
+//  ===================   server request functions ===================
 type rpcClient struct {
 	client *rpc.Client
 }
@@ -25,6 +26,7 @@ func (t *rpcClient) notify(msg, key, value string) error {
 	return nil
 }
 
+//  ===================   server handler functions ===================
 type KVServer int
 
 // Terminate a server

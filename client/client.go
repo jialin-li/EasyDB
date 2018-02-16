@@ -13,10 +13,12 @@ import (
 	"github.com/jialin-li/EasyDB/shared"
 )
 
+//  ===================   client request functions ===================
 type rpcClient struct {
 	client *rpc.Client
 }
 
+// master rpc
 func (t *rpcClient) notify(msg, key, value string) error {
 	fmt.Println("sending", msg)
 	args := &shared.Args{msg, key, value}
@@ -28,6 +30,30 @@ func (t *rpcClient) notify(msg, key, value string) error {
 	return nil
 }
 
+// server rpc
+func (t *rpcClient) put(msg, key, value string) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Put", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) get(msg, key, value string) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Get", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	return nil
+}
+
+//  ===================   client handler functions ===================
 type KVClient int
 
 func (*KVClient) Connect(args *shared.Args, reply *shared.Response) error {
@@ -43,6 +69,8 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 	// called by the master, will issue request to server
 
+	remoteCall.put(args.Msg, args.Key, args.Value)
+
 	//err := r.client.Call("KVServer.Put", args, reply)
 	//if err != nil {
 	//fmt.Printf("kvserver error: %e \n", err)
@@ -52,5 +80,6 @@ func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 
 // Get a Value based on a key
 func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
+	remoteCall.get(args.Msg, args.Key, args.Value)
 	return nil
 }

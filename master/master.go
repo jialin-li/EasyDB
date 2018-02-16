@@ -14,10 +14,23 @@ type rpcClient struct {
 	client *rpc.Client
 }
 
+// client
 func (t *rpcClient) put(msg, key, value string) error {
+	fmt.Println("sending", msg)
 	args := &shared.Args{msg, key, value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
+	if err != nil {
+		log.Fatal("server error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) get(msg, key, value string) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
 		log.Fatal("server error:", err)
 	}
@@ -48,8 +61,7 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 		// add client connection to map
 		clientConnections[id] = connection{shared.ClientType, port, conn}
 
-		client := &rpcClient{client: rpc.NewClient(conn)}
-		client.put("Put request to client", "key", "new value")
+		remoteCall = &rpcClient{client: rpc.NewClient(conn)}
 
 	case shared.ServerType:
 		port := shared.ServerPort + id

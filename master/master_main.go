@@ -31,6 +31,8 @@ const clientPath = "./client"
 
 var port = 1234
 
+var remoteCall *rpcClient
+
 func main() {
 	clientConnections = make(map[int]connection)
 	serverConnections = make(map[int]connection)
@@ -84,7 +86,7 @@ func main() {
 		case "printStore":
 			fmt.Println(strs[1])
 		case "put":
-			fmt.Println(strs[1])
+			remoteCall.put("Put request to client", "key", "new value")
 		case "get":
 			fmt.Println(strs[1])
 		default:
