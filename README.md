@@ -1,26 +1,23 @@
 # EasyDB
 
-###Installing
-`$ make install`
-
-###Building
+### Building
 `$ make`
 
-###Running
-`$ cd bin/`
-`$ ./master`
+### Running
+`$ cd bin/`  
+`$ ./master`  
 
 ___
 
-###Running the system manually
-`$ cd bin/`
-`$ ./master`
-`$ ./server <server id>`
-`$ ./client <client id>`
+### Running the system manually
+`$ cd bin/`  
+`$ ./master`  
+`$ ./server <server id>`  
+`$ ./client <client id>`  
 
 ___
 
-###TODO
--Look into switching to bufio.Scanner or fmt.Fscanf
--Extract internal functions from client and server's shared interface
+### TODO
+* Look into switching to bufio.Scanner or fmt.Fscanf
+* Extract internal functions from client and server's shared interface
 implementaion

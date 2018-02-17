@@ -47,6 +47,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		text, _ := reader.ReadString('\n')
+
 		// remove the newline character
 		text = text[:len(text)-1]
 
