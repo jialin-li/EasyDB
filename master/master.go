@@ -39,7 +39,7 @@ func (t *rpcClient) put(msg, key, value string) error {
 	return nil
 }
 
-func (t *rpcClient) get(msg, key, value string) error {
+func (t *rpcClient) get(msg, key, value string) string {
 	fmt.Println("sending", msg)
 	args := &shared.Args{msg, key, value}
 	var reply shared.Response
@@ -47,7 +47,7 @@ func (t *rpcClient) get(msg, key, value string) error {
 	if err != nil {
 		log.Println("server error:", err)
 	}
-	return nil
+	return reply.Result
 }
 
 //  ===================   master handler functions ===================
