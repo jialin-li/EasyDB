@@ -10,14 +10,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	// only added for testing
 	"github.com/jialin-li/EasyDB/shared"
-	"sync"
 )
 
-var masterCall *rpcClient
-
+// var masterCall *rpcClient
 var serverCalls map[int]*rpcClient
 
 var wg sync.WaitGroup
@@ -34,6 +33,9 @@ func main() {
 	}
 	args := os.Args[1:]
 
+	// var clientId, serverId int
+
+	// if we fail to extract our id, we should probably exit instead
 	clientId, err := strconv.Atoi(args[0])
 	if err != nil {
 		log.Println(err)
@@ -41,16 +43,22 @@ func main() {
 
 	serverCalls = make(map[int]*rpcClient)
 
+	serverId, err := strconv.Atoi(args[1])
+	if err != nil {
+		log.Println(err)
+	}
+	connectServer(serverId)
+
 	// Listen for connections from master and servers
 	listen(shared.ClientPort + clientId)
 
 	// Tries to connect to localhost:1234 (The port on which master's rpc
-	// server is listening)
+	// server is listening
 	conn, _ := shared.Dial(shared.MasterPort)
 
 	// Create a struct, that mimics all methods provided by interface.
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
-	masterCall = &rpcClient{client: rpc.NewClient(conn)}
+	masterCall := &rpcClient{client: rpc.NewClient(conn)}
 	masterCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
 
 	// now we block

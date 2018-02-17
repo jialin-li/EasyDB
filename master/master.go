@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jialin-li/EasyDB/shared"
 	"log"
 	"net/rpc"
 	"strconv"
+
+	"github.com/jialin-li/EasyDB/shared"
 )
 
 //  ===================   master request functions ===================
@@ -68,19 +70,21 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 
 		// add client connection to map
 		//clientConnections[id] = connection{shared.ClientType, port, conn}
-
-		clientCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
-		wg.Done()
+		clientCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
 
 	case shared.ServerType:
 		port := shared.ServerPort + id
 		conn, _ := shared.Dial(port)
 
 		// add server connection to map
-		serverConnections[id] = connection{shared.ServerType, port, conn}
-		wg.Done()
+		// serverConnections[id] = connection{shared.ServerType, port, conn}
+		serverCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
+
 	default:
 		log.Println("Notify failed")
+		return errors.New("Unknown rpc client type")
 	}
+
+	wg.Done()
 	return nil
 }

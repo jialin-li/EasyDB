@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"errors"
+	// "errors"
 	"fmt"
 	"log"
 	"net"
@@ -26,7 +26,9 @@ var clientId = 0
 var serverId = 0
 
 //var clientConnections map[int]connection
-var serverConnections map[int]connection
+// var serverConnections map[int]connection
+
+// not sure why we need this^
 
 const serverPath = "./server"
 const clientPath = "./client"
@@ -34,16 +36,16 @@ const clientPath = "./client"
 var port = 1234
 
 var clientCalls map[int]*rpcClient
-
-//var serverCalls map[int]*rpcClient
+var serverCalls map[int]*rpcClient
 
 var wg sync.WaitGroup
 
 func main() {
 	//clientConnections = make(map[int]connection)
-	serverConnections = make(map[int]connection)
+	// serverConnections = make(map[int]connection)
 
 	clientCalls = make(map[int]*rpcClient)
+	serverCalls = make(map[int]*rpcClient)
 
 	listen(port)
 
@@ -132,35 +134,48 @@ func main() {
 }
 
 func joinServer(id int) error {
-
 	// check if a server with id already exists
-	//if _, ok := serverConnections[id]; !ok {
-	//return errors.New("joinServer: server id already exists!")
-	//}
+	if _, ok := serverIds[id]; ok {
+		return fmt.Errorf("joinServer: server id %d already exists!", id)
+	}
 
-	// start a new client
-	server := exec.Command(serverPath)
+	// update to our mapping
+	sid := getServerId()
+	serverIds[id] = sid
+
+	// start a new server
+	server := exec.Command(serverPath, strconv.Itoa(sid))
 	err := server.Start()
 
 	// wait for server to notify us before proceeding
 	if err == nil {
+		// NOTE: underlying assumption is that only one Notify will come in at a time
+		// this is fine, just need to keep it in mind when we do things that may require
+		// multiple servers to coordinate (ex. stablize)
 		wg.Add(1)
 		// TODO: add a timeout?
 		wg.Wait()
 	}
-
 	return err
 }
 
 func joinClient(clientId, serverId int) error {
-
 	// check if a client with id already exists
-	if _, ok := clientCalls[clientId]; ok {
-		return errors.New("joinClient: client id already exists!")
+	if _, ok := clientIds[clientId]; ok {
+		return fmt.Errorf("joinClient: client id %d already exists!", clientId)
 	}
 
+	// get the server id
+	if _, ok := serverIds[serverId]; !ok {
+		return fmt.Errorf("joinClient: server id %d does not exist!", serverId)
+	}
+
+	// update to our mapping
+	cid := getClientId()
+	clientIds[clientId] = cid
+
 	// start a new client
-	client := exec.Command(clientPath, strconv.Itoa(getClientId()))
+	client := exec.Command(clientPath, strconv.Itoa(cid), strconv.Itoa(serverIds[serverId]))
 	err := client.Start()
 
 	// wait for client to notify us before proceeding
@@ -169,7 +184,6 @@ func joinClient(clientId, serverId int) error {
 		// TODO: add a timeout?
 		wg.Wait()
 	}
-
 	return err
 }
 

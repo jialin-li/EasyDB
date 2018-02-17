@@ -43,15 +43,16 @@ func (t *rpcClient) put(msg, key, value string) error {
 	return nil
 }
 
-func (t *rpcClient) get(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
-	var reply shared.Response
+func (t *rpcClient) get(key string) *shared.Response {
+	fmt.Println("getting ", key)
+	// TODO: clean this up
+	args := &shared.Args{"", key, ""}
+	reply := &shared.Response{}
 	err := t.client.Call("KVServer.Get", args, &reply)
 	if err != nil {
 		log.Fatal("server error:", err)
 	}
-	return nil
+	return reply
 }
 
 //  ===================   client handler functions ===================
@@ -63,13 +64,9 @@ func (*KVClient) Connect(args *shared.Args, reply *shared.Response) error {
 	if err != nil {
 		log.Println(err)
 	}
-
-	conn, _ := shared.Dial(shared.ServerPort + serverId)
-
-	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
+	connectServer(serverId)
 	fmt.Println("connected")
 	//TODO: give appropriate reply if connection already exists
-
 	return err
 }
 
@@ -81,8 +78,12 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 // Put a KV pair
 func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 	// called by the master, will issue request to server
+	// go through list of server connections
 
-	serverCalls[1].put(args.Msg, args.Key, args.Value)
+	for sid := range serverCalls {
+		serverCalls[sid].put(args.Msg, args.Key, args.Value)
+		return nil
+	}
 
 	//err := r.client.Call("KVServer.Put", args, reply)
 	//if err != nil {
@@ -93,6 +94,14 @@ func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 
 // Get a Value based on a key
 func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
-	serverCalls[1].get(args.Msg, args.Key, args.Value)
+	for sid := range serverCalls {
+		reply = serverCalls[sid].get(args.Key)
+	}
 	return nil
+}
+
+func connectServer(serverId int) {
+	// connect to the specified server
+	conn, _ := shared.Dial(serverId + shared.ServerPort)
+	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
 }
