@@ -21,7 +21,7 @@ var wg sync.WaitGroup
 // temp key value store for testing
 type dbValue struct {
 	value string
-	time  [shared.ClockLen]int
+	*shared.Time
 }
 
 var db map[string]*dbValue
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// set up key value store
-	db = make(map[string]dbValue)
+	db = make(map[string]*dbValue)
 
 	listen(shared.ServerPort + serverId)
 

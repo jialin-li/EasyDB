@@ -54,6 +54,9 @@ func main() {
 		term = true
 	}
 
+	serverIds = make(map[int]int)
+	clientIds = make(map[int]int)
+
 	clientCalls = make(map[int]*rpcClient)
 	serverCalls = make(map[int]*rpcClient)
 
@@ -136,7 +139,11 @@ func main() {
 				log.Println(err)
 			}
 		case "get":
-			fmt.Println(strs[1])
+			if clientId, err := strconv.Atoi(strs[1]); err == nil {
+				get(clientId, strs[2])
+			} else {
+				log.Println(err)
+			}
 		default:
 			fmt.Println("bad command")
 		}
@@ -208,7 +215,13 @@ func getServerId() int {
 }
 
 func put(clientId int, key, value string) error {
-	clientCalls[clientId].put("Calling put", key, value)
+	clientCalls[clientId].put(key, value)
+	return nil
+}
+
+func get(clientId int, key string) error {
+	value := clientCalls[clientId].get(key)
+	fmt.Printf("Retrieved: %v:%v\n", key, value)
 	return nil
 }
 

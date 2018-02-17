@@ -67,29 +67,31 @@ func put(args *shared.Args, reply *shared.Response) error {
 	if v, ok := db[args.Key]; ok {
 		v.value = args.Value
 		// TODO: update to real time
-		v.time = args.Time
+		v.Time = args.Time
 	} else {
-		db[args.Key] = &dbValue{value: args.Value, time: args.Time}
+		db[args.Key] = &dbValue{value: args.Value, Time: args.Time}
 	}
 	// fmt.Println("new db entry:")
 	// fmt.Printf(db[args.Key].value)
-	reply.Time = db[args.Key].time
-	fmt.Printf("%s:%s \n", args.Key, args.Value)
+	reply.Time = db[args.Key].Time
+	// fmt.Printf("%s:%s \n", args.Key, args.Value)
 	return nil
 }
 
 func get(args *shared.Args, reply *shared.Response) error {
+	var val string
 	// TODO: verify time stamp
 	if v, ok := db[args.Key]; ok {
-		reply.Result = v.value
-		reply.Time = v.time
+		val = v.value
+		reply.Time = v.Time
 	} else {
-		reply.Result = shared.ERR_KEY
+		val = shared.ERR_KEY
 	}
 	// fmt.Println("new db entry:")
 	// fmt.Printf(db[args.Key].value)
 
 	// fmt.Printf("%s:%s \n", args.Key, args.Value)
 	// reply.Result = "done"
+	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
 	return nil
 }

@@ -18,6 +18,7 @@ import (
 
 // var masterCall *rpcClient
 var serverCalls map[int]*rpcClient
+var keyTimes map[string]*shared.Time
 
 var wg sync.WaitGroup
 
@@ -42,6 +43,7 @@ func main() {
 	}
 
 	serverCalls = make(map[int]*rpcClient)
+	keyTimes = make(map[string]*shared.Time)
 
 	serverId, err := strconv.Atoi(args[1])
 	if err != nil {

@@ -14,6 +14,4 @@ const (
 
 	ERR_DEP = "ERR_DEP"
 	ERR_KEY = "ERR_KEY"
-
-	ClockLen = 10
 )

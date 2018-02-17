@@ -5,7 +5,7 @@ type Args struct {
 	Msg   string
 	Key   string
 	Value string
-	Time  [ClockLen]int
+	*Time
 }
 
 type NotifyArgs struct {
@@ -17,7 +17,11 @@ type NotifyArgs struct {
 
 type Response struct {
 	Result string
-	Time   [ClockLen]int
+	*Time
+}
+
+type Time struct {
+	Clock [10]int
 }
 
 type Server interface {

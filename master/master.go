@@ -18,7 +18,7 @@ type rpcClient struct {
 // client
 func (t *rpcClient) connect(msg, key string, serverId int) error {
 	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, strconv.Itoa(serverId)}
+	args := &shared.Args{Msg: msg, Key: key, Value: strconv.Itoa(serverId)}
 	//args := &shared.Args{msg, key, value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Connect", args, &reply)
@@ -28,9 +28,8 @@ func (t *rpcClient) connect(msg, key string, serverId int) error {
 	return nil
 }
 
-func (t *rpcClient) put(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
+func (t *rpcClient) put(key, value string) error {
+	args := &shared.Args{Key: key, Value: value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
 	if err != nil {
@@ -39,15 +38,14 @@ func (t *rpcClient) put(msg, key, value string) error {
 	return nil
 }
 
-func (t *rpcClient) get(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
+func (t *rpcClient) get(key string) string {
+	args := &shared.Args{Key: key}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
 		log.Println("server error:", err)
 	}
-	return nil
+	return reply.Result
 }
 
 //  ===================   master handler functions ===================

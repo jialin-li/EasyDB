@@ -32,8 +32,10 @@ func (t *rpcClient) notify(id int) error {
 
 // server rpc
 func (t *rpcClient) put(key, value string) error {
-	// fmt.Println("sending", msg)
 	args := &shared.Args{Key: key, Value: value}
+	if v, ok := keyTimes[key]; ok {
+		args.Time = v
+	}
 	reply := &shared.Response{}
 	err := t.client.Call("KVServer.Put", args, reply)
 	// if err != nil {
@@ -46,9 +48,7 @@ func (t *rpcClient) put(key, value string) error {
 func (t *rpcClient) get(key string, reply *shared.Response) error {
 	fmt.Printf("getting %v \n", key)
 	args := &shared.Args{Key: key}
-	// reply := &shared.Response{}
 	err := t.client.Call("KVServer.Get", args, reply)
-
 	// ?? do we need to deal with time stamp?
 	// if err != nil {
 	// 	log.Fatal("server error:", err)
