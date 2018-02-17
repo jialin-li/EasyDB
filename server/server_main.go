@@ -17,6 +17,15 @@ import (
 
 var wg sync.WaitGroup
 
+// temp key value store for testing
+
+type dbValue struct {
+	value string
+	clock [10]int
+}
+
+var db map[string]dbValue
+
 func main() {
 
 	// Use the -term flag to run  the server as a command line program. Server
@@ -35,14 +44,14 @@ func main() {
 		log.Println(err)
 	}
 
+	// set up key value store
+	db = make(map[string]dbValue)
+
 	listen(shared.ServerPort + serverId)
 
 	// Tries to connect to localhost:1234 (The port on which master's rpc
 	// server is listening)
-	conn, err := net.Dial("tcp", "localhost:"+strconv.Itoa(shared.MasterPort))
-	if err != nil {
-		fmt.Println(err)
-	}
+	conn, _ := shared.Dial(shared.MasterPort)
 
 	client := &rpcClient{client: rpc.NewClient(conn)}
 	client.notify("Notifying master", strconv.Itoa(shared.ServerType), args[0])

@@ -56,6 +56,14 @@ func (*KVServer) Stabilize(args *shared.Args, reply *shared.Response) error {
 
 // Put a KV pair
 func (*KVServer) Put(args *shared.Args, reply *shared.Response) error {
+	if value, ok := db[args.Key]; ok {
+		value.value = args.Value
+	} else {
+		db[args.Key] = dbValue{value: args.Value}
+	}
+	fmt.Println("new db entry:")
+	fmt.Printf(db[args.Key].value)
+
 	fmt.Printf("%s:%s \n", args.Key, args.Value)
 	reply.Result = "hello friend"
 	return nil

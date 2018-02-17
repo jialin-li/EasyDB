@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jialin-li/EasyDB/shared"
 	"log"
-	"net"
 	"net/rpc"
 	"strconv"
 )
@@ -15,13 +14,25 @@ type rpcClient struct {
 }
 
 // client
+func (t *rpcClient) connect(msg, key string, serverId int) error {
+	fmt.Println("sending", msg)
+	args := &shared.Args{msg, key, strconv.Itoa(serverId)}
+	//args := &shared.Args{msg, key, value}
+	var reply shared.Response
+	err := t.client.Call("KVClient.Connect", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return nil
+}
+
 func (t *rpcClient) put(msg, key, value string) error {
 	fmt.Println("sending", msg)
 	args := &shared.Args{msg, key, value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
 	if err != nil {
-		log.Fatal("server error:", err)
+		log.Println("server error:", err)
 	}
 	return nil
 }
@@ -32,7 +43,7 @@ func (t *rpcClient) get(msg, key, value string) error {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
-		log.Fatal("server error:", err)
+		log.Println("server error:", err)
 	}
 	return nil
 }
@@ -53,23 +64,17 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 	switch t, _ := strconv.Atoi(args.Key); t {
 	case shared.ClientType:
 		port := shared.ClientPort + id
-		conn, err := net.Dial("tcp",
-			"localhost:"+strconv.Itoa(port))
-		if err != nil {
-			fmt.Printf("Connection: %e \n", err)
-		}
-		// add client connection to map
-		clientConnections[id] = connection{shared.ClientType, port, conn}
+		conn, _ := shared.Dial(port)
 
-		remoteCall = &rpcClient{client: rpc.NewClient(conn)}
+		// add client connection to map
+		//clientConnections[id] = connection{shared.ClientType, port, conn}
+
+		clientCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
 
 	case shared.ServerType:
 		port := shared.ServerPort + id
-		conn, err := net.Dial("tcp",
-			"localhost:"+strconv.Itoa(port))
-		if err != nil {
-			fmt.Printf("Connection: %e \n", err)
-		}
+		conn, _ := shared.Dial(port)
+
 		// add server connection to map
 		serverConnections[id] = connection{shared.ServerType, port, conn}
 	default:

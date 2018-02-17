@@ -16,7 +16,9 @@ import (
 	"sync"
 )
 
-var remoteCall *rpcClient
+var masterCall *rpcClient
+
+var serverCalls map[int]*rpcClient
 
 var wg sync.WaitGroup
 
@@ -37,20 +39,19 @@ func main() {
 		log.Println(err)
 	}
 
+	serverCalls = make(map[int]*rpcClient)
+
 	// Listen for connections from master and servers
 	listen(shared.ClientPort + clientId)
 
 	// Tries to connect to localhost:1234 (The port on which master's rpc
 	// server is listening)
-	conn, err := net.Dial("tcp", "localhost:"+strconv.Itoa(shared.MasterPort))
-	if err != nil {
-		fmt.Println(err)
-	}
+	conn, _ := shared.Dial(shared.MasterPort)
 
 	// Create a struct, that mimics all methods provided by interface.
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
-	remoteCall = &rpcClient{client: rpc.NewClient(conn)}
-	remoteCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
+	masterCall = &rpcClient{client: rpc.NewClient(conn)}
+	masterCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
 
 	// now we block
 	wg.Wait()

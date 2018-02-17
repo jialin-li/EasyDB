@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	//"errors"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -23,7 +23,8 @@ var serverIds map[int]int
 var clientIds map[int]int
 var clientId = 0
 var serverId = 0
-var clientConnections map[int]connection
+
+//var clientConnections map[int]connection
 var serverConnections map[int]connection
 
 const serverPath = "./server"
@@ -31,11 +32,15 @@ const clientPath = "./client"
 
 var port = 1234
 
-var remoteCall *rpcClient
+var clientCalls map[int]*rpcClient
+
+//var serverCalls map[int]*rpcClient
 
 func main() {
-	clientConnections = make(map[int]connection)
+	//clientConnections = make(map[int]connection)
 	serverConnections = make(map[int]connection)
+
+	clientCalls = make(map[int]*rpcClient)
 
 	listen(port)
 
@@ -81,12 +86,34 @@ func main() {
 			fmt.Println(strs[1])
 		case "createConnection":
 			fmt.Println(strs[1])
+			fmt.Println(strs[2])
+			var clientId, serverId int
+			var err error
+			if clientId, err = strconv.Atoi(strs[1]); err != nil {
+				log.Println(err)
+				continue
+			}
+
+			if serverId, err = strconv.Atoi(strs[2]); err != nil {
+				log.Println(err)
+				continue
+			}
+
+			clientCalls[clientId].connect("connecting", "test", serverId)
+			//if err = joinClient(clientId, serverId); err != nil {
+			//log.Println(err)
+			//continue
+			//}
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
 			fmt.Println(strs[1])
 		case "put":
-			remoteCall.put("Put request to client", "key", "new value")
+			if clientId, err := strconv.Atoi(strs[1]); err == nil {
+				put(clientId, strs[2], strs[3])
+			} else {
+				log.Println(err)
+			}
 		case "get":
 			fmt.Println(strs[1])
 		default:
@@ -112,9 +139,9 @@ func joinServer(id int) error {
 func joinClient(clientId, serverId int) error {
 
 	// check if a client with id already exists
-	//if _, ok := clientConnections[clientId]; ok {
-	//return errors.New("joinClient: client id already exists!")
-	//}
+	if _, ok := clientCalls[clientId]; ok {
+		return errors.New("joinClient: client id already exists!")
+	}
 
 	// start a new client
 	client := exec.Command(clientPath, strconv.Itoa(getClientId()))
@@ -131,6 +158,11 @@ func getClientId() int {
 func getServerId() int {
 	serverId++
 	return serverId - 1
+}
+
+func put(clientId int, key, value string) error {
+	clientCalls[clientId].put("Calling put", key, value)
+	return nil
 }
 
 func listen(port int) error {

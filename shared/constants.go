@@ -1,6 +1,7 @@
 package shared
 
 const (
+	// enums used to identify type of rpc client notifying the master
 	ClientType = iota
 	ServerType = iota
 

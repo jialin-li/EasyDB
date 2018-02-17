@@ -9,6 +9,7 @@ import (
 	"net/rpc"
 	//	"os"
 	//	"strings"
+	"strconv"
 
 	"github.com/jialin-li/EasyDB/shared"
 )
@@ -57,7 +58,19 @@ func (t *rpcClient) get(msg, key, value string) error {
 type KVClient int
 
 func (*KVClient) Connect(args *shared.Args, reply *shared.Response) error {
-	return nil
+	// server id that we are going to attempt to connect to
+	serverId, err := strconv.Atoi(args.Value)
+	if err != nil {
+		log.Println(err)
+	}
+
+	conn, _ := shared.Dial(shared.ServerPort + serverId)
+
+	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
+	fmt.Println("connected")
+	//TODO: give appropriate reply if connection already exists
+
+	return err
 }
 
 // Disconnect if we are clients of any other servers
@@ -69,7 +82,7 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 	// called by the master, will issue request to server
 
-	remoteCall.put(args.Msg, args.Key, args.Value)
+	serverCalls[1].put(args.Msg, args.Key, args.Value)
 
 	//err := r.client.Call("KVServer.Put", args, reply)
 	//if err != nil {
@@ -80,6 +93,6 @@ func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 
 // Get a Value based on a key
 func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
-	remoteCall.get(args.Msg, args.Key, args.Value)
+	serverCalls[1].get(args.Msg, args.Key, args.Value)
 	return nil
 }
