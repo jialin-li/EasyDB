@@ -73,7 +73,12 @@ func main() {
 func parseCommands() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		text, _ := reader.ReadString('\n')
+		text, err := reader.ReadString('\n')
+
+		if err != nil {
+			log.Println(err)
+			break
+		}
 
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "breakConnection":
