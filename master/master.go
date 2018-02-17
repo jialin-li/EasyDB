@@ -85,6 +85,8 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 		return errors.New("Unknown rpc client type")
 	}
 
-	wg.Done()
+	if !term {
+		wg.Done()
+	}
 	return nil
 }

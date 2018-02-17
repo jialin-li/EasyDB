@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	// "errors"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -40,9 +41,18 @@ var serverCalls map[int]*rpcClient
 
 var wg sync.WaitGroup
 
+var term bool
+
 func main() {
 	//clientConnections = make(map[int]connection)
 	// serverConnections = make(map[int]connection)
+
+	termPtr := flag.Bool("term", false, "run as program")
+
+	flag.Parse()
+	if *termPtr {
+		term = true
+	}
 
 	clientCalls = make(map[int]*rpcClient)
 	serverCalls = make(map[int]*rpcClient)
