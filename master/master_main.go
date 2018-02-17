@@ -54,6 +54,9 @@ func main() {
 		term = true
 	}
 
+	serverIds = make(map[int]int)
+	clientIds = make(map[int]int)
+
 	clientCalls = make(map[int]*rpcClient)
 	serverCalls = make(map[int]*rpcClient)
 
