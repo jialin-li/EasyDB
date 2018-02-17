@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type connection struct {
@@ -36,6 +37,8 @@ var clientCalls map[int]*rpcClient
 
 //var serverCalls map[int]*rpcClient
 
+var wg sync.WaitGroup
+
 func main() {
 	//clientConnections = make(map[int]connection)
 	serverConnections = make(map[int]connection)
@@ -46,7 +49,12 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		text, _ := reader.ReadString('\n')
+		text, err := reader.ReadString('\n')
+
+		if err != nil {
+			log.Println(err)
+			break
+		}
 
 		// remove the newline character
 		text = text[:len(text)-1]
@@ -134,6 +142,13 @@ func joinServer(id int) error {
 	server := exec.Command(serverPath)
 	err := server.Start()
 
+	// wait for server to notify us before proceeding
+	if err == nil {
+		wg.Add(1)
+		// TODO: add a timeout?
+		wg.Wait()
+	}
+
 	return err
 }
 
@@ -147,6 +162,13 @@ func joinClient(clientId, serverId int) error {
 	// start a new client
 	client := exec.Command(clientPath, strconv.Itoa(getClientId()))
 	err := client.Start()
+
+	// wait for client to notify us before proceeding
+	if err == nil {
+		wg.Add(1)
+		// TODO: add a timeout?
+		wg.Wait()
+	}
 
 	return err
 }

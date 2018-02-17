@@ -70,6 +70,7 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 		//clientConnections[id] = connection{shared.ClientType, port, conn}
 
 		clientCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
+		wg.Done()
 
 	case shared.ServerType:
 		port := shared.ServerPort + id
@@ -77,6 +78,7 @@ func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
 
 		// add server connection to map
 		serverConnections[id] = connection{shared.ServerType, port, conn}
+		wg.Done()
 	default:
 		log.Println("Notify failed")
 	}
