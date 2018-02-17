@@ -1,2 +1,6 @@
 *.swo
 *.swp
+
+bin/master
+bin/server
+bin/client
