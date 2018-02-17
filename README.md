@@ -21,3 +21,5 @@ ___
 * Look into switching to bufio.Scanner or fmt.Fscanf
 * Extract internal functions from client and server's shared interface
 implementaion
+* Use TcpConn instead?
+* Make sure this can be compiled standalone
