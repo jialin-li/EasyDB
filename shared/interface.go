@@ -5,12 +5,19 @@ type Args struct {
 	Msg   string
 	Key   string
 	Value string
+	Time  [ClockLen]int
+}
+
+type NotifyArgs struct {
+	Type int
+	ID   int
 }
 
 // we might want to have multiple args struct for different calls
 
 type Response struct {
 	Result string
+	Time   [ClockLen]int
 }
 
 type Server interface {
@@ -47,5 +54,5 @@ type Client interface {
 
 type Master interface {
 	// Notify the master that it's up
-	Notify(args *Args, reply *Response) error
+	Notify(args *NotifyArgs, reply *Response) error
 }

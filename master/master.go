@@ -53,32 +53,16 @@ func (t *rpcClient) get(msg, key, value string) error {
 //  ===================   master handler functions ===================
 type Master int
 
-func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
-	*reply = shared.Response{"it worked"}
-	fmt.Println(args.Msg, args.Key, args.Value)
-	id, err := strconv.Atoi(args.Value)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
+func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 	// Dial back
-	switch t, _ := strconv.Atoi(args.Key); t {
+	switch args.Type {
 	case shared.ClientType:
-		port := shared.ClientPort + id
-		conn, _ := shared.Dial(port)
-
-		// add client connection to map
-		//clientConnections[id] = connection{shared.ClientType, port, conn}
-		clientCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
+		conn, _ := shared.Dial(shared.ClientPort + args.ID)
+		clientCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
 	case shared.ServerType:
-		port := shared.ServerPort + id
-		conn, _ := shared.Dial(port)
-
-		// add server connection to map
-		// serverConnections[id] = connection{shared.ServerType, port, conn}
-		serverCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
+		conn, _ := shared.Dial(shared.ServerPort + args.ID)
+		serverCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
 	default:
 		log.Println("Notify failed")

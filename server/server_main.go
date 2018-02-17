@@ -5,7 +5,6 @@ import (
 	// "errors"
 	"flag"
 	"fmt"
-	"github.com/jialin-li/EasyDB/shared" //Path to the package contains shared struct
 	"log"
 	"net"
 	"net/rpc"
@@ -13,18 +12,19 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/jialin-li/EasyDB/shared" //Path to the package contains shared struct
 )
 
 var wg sync.WaitGroup
 
 // temp key value store for testing
-
 type dbValue struct {
 	value string
-	clock [10]int
+	time  [shared.ClockLen]int
 }
 
-var db map[string]dbValue
+var db map[string]*dbValue
 
 func main() {
 
@@ -53,8 +53,8 @@ func main() {
 	// server is listening)
 	conn, _ := shared.Dial(shared.MasterPort)
 
-	client := &rpcClient{client: rpc.NewClient(conn)}
-	client.notify("Notifying master", strconv.Itoa(shared.ServerType), args[0])
+	masterCall := &rpcClient{client: rpc.NewClient(conn)}
+	masterCall.notify(serverId)
 
 	// now we block
 	wg.Wait()

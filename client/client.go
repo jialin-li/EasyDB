@@ -20,39 +20,40 @@ type rpcClient struct {
 }
 
 // master rpc
-func (t *rpcClient) notify(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
-	var reply shared.Response
-	err := t.client.Call("Master.Notify", args, &reply)
+func (t *rpcClient) notify(id int) error {
+	// fmt.Println("About to notify master that client %s is up", id)
+	args := &shared.NotifyArgs{Type: shared.ServerType, ID: id}
+	err := t.client.Call("Master.Notify", args, nil)
 	if err != nil {
 		log.Fatal("server error:", err)
 	}
-	return nil
+	return err
 }
 
 // server rpc
-func (t *rpcClient) put(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
-	var reply shared.Response
-	err := t.client.Call("KVServer.Put", args, &reply)
-	if err != nil {
-		log.Fatal("server error:", err)
-	}
-	return nil
+func (t *rpcClient) put(key, value string) error {
+	// fmt.Println("sending", msg)
+	args := &shared.Args{Key: key, Value: value}
+	reply := &shared.Response{}
+	err := t.client.Call("KVServer.Put", args, reply)
+	// if err != nil {
+	// 	log.Fatal("server error:", err)
+	// }
+	// TODO: read the time stamp from reply and do things with it
+	return err
 }
 
-func (t *rpcClient) get(key string) *shared.Response {
-	fmt.Println("getting ", key)
-	// TODO: clean this up
-	args := &shared.Args{"", key, ""}
-	reply := &shared.Response{}
-	err := t.client.Call("KVServer.Get", args, &reply)
-	if err != nil {
-		log.Fatal("server error:", err)
-	}
-	return reply
+func (t *rpcClient) get(key string, reply *shared.Response) error {
+	fmt.Printf("getting %v \n", key)
+	args := &shared.Args{Key: key}
+	// reply := &shared.Response{}
+	err := t.client.Call("KVServer.Get", args, reply)
+
+	// ?? do we need to deal with time stamp?
+	// if err != nil {
+	// 	log.Fatal("server error:", err)
+	// }
+	return err
 }
 
 //  ===================   client handler functions ===================
@@ -64,7 +65,7 @@ func (*KVClient) Connect(args *shared.Args, reply *shared.Response) error {
 	if err != nil {
 		log.Println(err)
 	}
-	connectServer(serverId)
+	setupConn(serverId)
 	fmt.Println("connected")
 	//TODO: give appropriate reply if connection already exists
 	return err
@@ -79,28 +80,21 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
 	// called by the master, will issue request to server
 	// go through list of server connections
-
 	for sid := range serverCalls {
-		serverCalls[sid].put(args.Msg, args.Key, args.Value)
-		return nil
+		return serverCalls[sid].put(args.Key, args.Value)
 	}
-
-	//err := r.client.Call("KVServer.Put", args, reply)
-	//if err != nil {
-	//fmt.Printf("kvserver error: %e \n", err)
-	//}
 	return nil
 }
 
 // Get a Value based on a key
 func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
 	for sid := range serverCalls {
-		reply = serverCalls[sid].get(args.Key)
+		return serverCalls[sid].get(args.Key, reply)
 	}
 	return nil
 }
 
-func connectServer(serverId int) {
+func setupConn(serverId int) {
 	// connect to the specified server
 	conn, _ := shared.Dial(serverId + shared.ServerPort)
 	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}

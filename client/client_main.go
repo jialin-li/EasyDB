@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	connectServer(serverId)
+	setupConn(serverId)
 
 	// Listen for connections from master and servers
 	listen(shared.ClientPort + clientId)
@@ -59,7 +59,7 @@ func main() {
 	// Create a struct, that mimics all methods provided by interface.
 	// It is not compulsory, we are doing it here, just to simulate a traditional method call.
 	masterCall := &rpcClient{client: rpc.NewClient(conn)}
-	masterCall.notify("Notifying master", strconv.Itoa(shared.ClientType), args[0])
+	masterCall.notify(clientId)
 
 	// now we block
 	wg.Wait()
