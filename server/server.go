@@ -41,6 +41,8 @@ func (*KVServer) Connect(args *shared.Args, reply *shared.Response) error {
 
 // Send back the current key value store
 func (*KVServer) DumpStore(args *shared.Args, reply *shared.Response) error {
+	store := dumpStore()
+	reply.Result = store
 	return nil
 }
 

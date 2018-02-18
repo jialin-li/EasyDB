@@ -26,6 +26,8 @@ type dbValue struct {
 
 var db map[string]dbValue
 
+var term bool
+
 func main() {
 
 	// Use the -term flag to run  the server as a command line program. Server
@@ -33,11 +35,13 @@ func main() {
 	// distributed system.
 	termPtr := flag.Bool("term", false, "run as program")
 
+	args := os.Args[1:]
+
 	flag.Parse()
 	if *termPtr {
-		parseCommands()
+		term = true
+		args = os.Args[2:]
 	}
-	args := os.Args[1:]
 
 	serverId, err := strconv.Atoi(args[0])
 	if err != nil {
@@ -56,6 +60,10 @@ func main() {
 	client := &rpcClient{client: rpc.NewClient(conn)}
 	client.notify("Notifying master", strconv.Itoa(shared.ServerType), args[0])
 
+	if term {
+		parseCommands()
+	}
+
 	// now we block
 	wg.Wait()
 }
@@ -70,6 +78,9 @@ func parseCommands() {
 			break
 		}
 
+		// remove the newline character
+		text = text[:len(text)-1]
+
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":
 			fmt.Println(strs[1])
@@ -82,15 +93,31 @@ func parseCommands() {
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
-			fmt.Println(strs[1])
+			printStore()
 		case "put":
 			fmt.Println(strs[1])
 		case "get":
 			fmt.Println(strs[1])
 		default:
+			fmt.Println(strs[0])
 			fmt.Println("bad command")
 		}
 	}
+}
+
+func printStore() {
+	for k, v := range db {
+		fmt.Println(k + ":" + v.value)
+	}
+}
+
+func dumpStore() string {
+	var store string
+	for k, v := range db {
+		store += k + ":" + v.value + " "
+	}
+	// cut off last space
+	return store[:len(store)-1]
 }
 
 func listen(port int) error {

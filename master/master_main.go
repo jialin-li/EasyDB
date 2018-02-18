@@ -131,15 +131,28 @@ func main() {
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
-			fmt.Println(strs[1])
+			if serverId, err := strconv.Atoi(strs[1]); err == nil {
+				if !term {
+					serverId = clientIds[serverId]
+				}
+				printStore(serverId)
+			} else {
+				log.Println(err)
+			}
 		case "put":
 			if clientId, err := strconv.Atoi(strs[1]); err == nil {
+				if !term {
+					clientId = clientIds[clientId]
+				}
 				put(clientId, strs[2], strs[3])
 			} else {
 				log.Println(err)
 			}
 		case "get":
 			if clientId, err := strconv.Atoi(strs[1]); err == nil {
+				if !term {
+					clientId = clientIds[clientId]
+				}
 				get(clientId, strs[2])
 			} else {
 				log.Println(err)
@@ -214,6 +227,14 @@ func getServerId() int {
 	return serverId - 1
 }
 
+func printStore(serverId int) {
+	value := serverCalls[serverId].printStore()
+	// parse value
+	store := strings.Split(value, " ")
+	for _, v := range store {
+		fmt.Println(v)
+	}
+}
 func put(clientId int, key, value string) error {
 	clientCalls[clientId].put("Calling put", key, value)
 	return nil

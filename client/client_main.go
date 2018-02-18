@@ -88,6 +88,9 @@ func parseCommands() {
 			break
 		}
 
+		// remove the newline character
+		text = text[:len(text)-1]
+
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "breakConnection":
 			fmt.Println(strs[1])

@@ -50,6 +50,18 @@ func (t *rpcClient) get(msg, key, value string) string {
 	return reply.Result
 }
 
+// server
+func (t *rpcClient) printStore() string {
+	fmt.Println("sending printStore")
+	args := &shared.Args{}
+	var reply shared.Response
+	err := t.client.Call("KVServer.DumpStore", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return reply.Result
+}
+
 //  ===================   master handler functions ===================
 type Master int
 
