@@ -22,7 +22,7 @@ type rpcClient struct {
 // master rpc
 func (t *rpcClient) notify(id int) error {
 	// fmt.Println("About to notify master that client %s is up", id)
-	args := &shared.NotifyArgs{Type: shared.ServerType, ID: id}
+	args := &shared.NotifyArgs{Type: shared.ClientType, ID: id}
 	err := t.client.Call("Master.Notify", args, nil)
 	if err != nil {
 		log.Fatal("server error:", err)
