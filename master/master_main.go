@@ -44,9 +44,6 @@ var wg sync.WaitGroup
 var term bool
 
 func main() {
-	//clientConnections = make(map[int]connection)
-	// serverConnections = make(map[int]connection)
-
 	termPtr := flag.Bool("term", false, "run as program")
 
 	flag.Parse()
@@ -76,9 +73,11 @@ func main() {
 
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":
+			var unused string
 			var id int
-			var err error
-			if id, err = strconv.Atoi(strs[1]); err != nil {
+
+			_, err := fmt.Sscanf(text, "%s %d", &unused, &id)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
@@ -90,14 +89,12 @@ func main() {
 		case "killServer":
 			fmt.Println(strs[1])
 		case "joinClient":
+			var unused string
 			var clientId, serverId int
-			var err error
-			if clientId, err = strconv.Atoi(strs[1]); err != nil {
-				log.Println(err)
-				continue
-			}
 
-			if serverId, err = strconv.Atoi(strs[2]); err != nil {
+			_, err := fmt.Sscanf(
+				text, "%s %d %d", &unused, &clientId, &serverId)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
@@ -107,7 +104,14 @@ func main() {
 				continue
 			}
 		case "breakConnection":
-			fmt.Println(strs[1])
+			var unused string
+			var id, id2 int
+			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id, &id2)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			fmt.Println(id, id2)
 		case "createConnection":
 			fmt.Println(strs[1])
 			fmt.Println(strs[2])
@@ -124,39 +128,51 @@ func main() {
 			}
 
 			clientCalls[clientId].connect("connecting", "test", serverId)
-			//if err = joinClient(clientId, serverId); err != nil {
-			//log.Println(err)
-			//continue
-			//}
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
-			if serverId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					serverId = clientIds[serverId]
-				}
-				printStore(serverId)
-			} else {
+			var unused string
+			var serverId int
+			_, err := fmt.Sscanf(
+				text, "%s %d", &unused, &serverId)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+
+			if !term {
+				serverId = clientIds[serverId]
+			}
+			printStore(serverId)
+
 		case "put":
-			if clientId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					clientId = clientIds[clientId]
-				}
-				put(clientId, strs[2], strs[3])
-			} else {
+			var unused, key, value string
+			var clientId int
+			_, err := fmt.Sscanf(
+				text, "%s %d %s %s", &unused, &clientId, &key, &value)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+			if !term {
+				clientId = clientIds[clientId]
+			}
+			put(clientId, key, value)
+
 		case "get":
-			if clientId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					clientId = clientIds[clientId]
-				}
-				get(clientId, strs[2])
-			} else {
+			var unused, key string
+			var clientId int
+			_, err := fmt.Sscanf(
+				text, "%s %d %s", &unused, &clientId, &key)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+			if !term {
+				clientId = clientIds[clientId]
+			}
+			get(clientId, key)
+
 		default:
 			fmt.Println("bad command")
 		}
