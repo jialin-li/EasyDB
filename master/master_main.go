@@ -236,12 +236,12 @@ func printStore(serverId int) {
 	}
 }
 func put(clientId int, key, value string) error {
-	clientCalls[clientId].put("Calling put", key, value)
+	clientCalls[clientId].put(key, value)
 	return nil
 }
 
 func get(clientId int, key string) error {
-	value := clientCalls[clientId].get("calling get", key, "")
+	value := clientCalls[clientId].get(key)
 	fmt.Printf("Retrieved: %v:%v\n", key, value)
 	return nil
 }

@@ -18,7 +18,7 @@ type rpcClient struct {
 // client
 func (t *rpcClient) connect(msg, key string, serverId int) error {
 	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, strconv.Itoa(serverId)}
+	args := &shared.Args{Msg: msg, Key: key, Value: strconv.Itoa(serverId)}
 	//args := &shared.Args{msg, key, value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Connect", args, &reply)
@@ -28,9 +28,8 @@ func (t *rpcClient) connect(msg, key string, serverId int) error {
 	return nil
 }
 
-func (t *rpcClient) put(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
+func (t *rpcClient) put(key, value string) error {
+	args := &shared.Args{Key: key, Value: value}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
 	if err != nil {
@@ -39,9 +38,8 @@ func (t *rpcClient) put(msg, key, value string) error {
 	return nil
 }
 
-func (t *rpcClient) get(msg, key, value string) string {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
+func (t *rpcClient) get(key string) string {
+	args := &shared.Args{Key: key}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
@@ -65,32 +63,16 @@ func (t *rpcClient) printStore() string {
 //  ===================   master handler functions ===================
 type Master int
 
-func (*Master) Notify(args *shared.Args, reply *shared.Response) error {
-	*reply = shared.Response{"it worked"}
-	fmt.Println(args.Msg, args.Key, args.Value)
-	id, err := strconv.Atoi(args.Value)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
+func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 	// Dial back
-	switch t, _ := strconv.Atoi(args.Key); t {
+	switch args.Type {
 	case shared.ClientType:
-		port := shared.ClientPort + id
-		conn, _ := shared.Dial(port)
-
-		// add client connection to map
-		//clientConnections[id] = connection{shared.ClientType, port, conn}
-		clientCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
+		conn, _ := shared.Dial(shared.ClientPort + args.ID)
+		clientCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
 	case shared.ServerType:
-		port := shared.ServerPort + id
-		conn, _ := shared.Dial(port)
-
-		// add server connection to map
-		// serverConnections[id] = connection{shared.ServerType, port, conn}
-		serverCalls[id] = &rpcClient{client: rpc.NewClient(conn)}
+		conn, _ := shared.Dial(shared.ServerPort + args.ID)
+		serverCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
 	default:
 		log.Println("Notify failed")

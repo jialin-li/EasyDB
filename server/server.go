@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/jialin-li/EasyDB/shared"
 	"log"
 	"net/rpc"
+
+	"github.com/jialin-li/EasyDB/shared"
 )
 
 //  ===================   server request functions ===================
@@ -12,18 +13,15 @@ type rpcClient struct {
 	client *rpc.Client
 }
 
-// master
-func (t *rpcClient) notify(msg, key, value string) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{msg, key, value}
-	var reply shared.Response
-	err := t.client.Call("Master.Notify", args, &reply)
+func (t *rpcClient) notify(id int) error {
+	// fmt.Println("About to notify master that client %s is up", id)
+	args := &shared.NotifyArgs{Type: shared.ClientType, ID: id}
+	// var reply shared.Response
+	err := t.client.Call("Master.Notify", args, nil)
 	if err != nil {
 		log.Fatal("server error:", err)
 	}
-	fmt.Println(reply.Result)
-
-	return nil
+	return err
 }
 
 //  ===================   server handler functions ===================
@@ -58,20 +56,44 @@ func (*KVServer) Stabilize(args *shared.Args, reply *shared.Response) error {
 
 // Put a KV pair
 func (*KVServer) Put(args *shared.Args, reply *shared.Response) error {
-	if value, ok := db[args.Key]; ok {
-		value.value = args.Value
-	} else {
-		db[args.Key] = dbValue{value: args.Value}
-	}
-	fmt.Println("new db entry:")
-	fmt.Printf(db[args.Key].value)
-
-	fmt.Printf("%s:%s \n", args.Key, args.Value)
-	reply.Result = "hello friend"
-	return nil
+	return put(args, reply)
 }
 
 // Get a Value based on a key
 func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
+	return get(args, reply)
+}
+
+// actual kv functions
+func put(args *shared.Args, reply *shared.Response) error {
+	if v, ok := db[args.Key]; ok {
+		v.value = args.Value
+		// TODO: update to real time
+		v.Time = args.Time
+	} else {
+		db[args.Key] = &dbValue{value: args.Value, Time: args.Time}
+	}
+	// fmt.Println("new db entry:")
+	// fmt.Printf(db[args.Key].value)
+	reply.Time = db[args.Key].Time
+	// fmt.Printf("%s:%s \n", args.Key, args.Value)
+	return nil
+}
+
+func get(args *shared.Args, reply *shared.Response) error {
+	var val string
+	// TODO: verify time stamp
+	if v, ok := db[args.Key]; ok {
+		val = v.value
+		reply.Time = v.Time
+	} else {
+		val = shared.ERR_KEY
+	}
+	// fmt.Println("new db entry:")
+	// fmt.Printf(db[args.Key].value)
+
+	// fmt.Printf("%s:%s \n", args.Key, args.Value)
+	// reply.Result = "done"
+	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
 	return nil
 }

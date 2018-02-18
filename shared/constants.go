@@ -11,4 +11,7 @@ const (
 	ClientPort = 1240
 	// server ports are determined by 1250 + serverId
 	ServerPort = 1250
+
+	ERR_DEP = "ERR_DEP"
+	ERR_KEY = "ERR_KEY"
 )
