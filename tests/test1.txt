@@ -1,0 +1,5 @@
+joinServer 1
+joinClient 0 1
+put 0 1 test
+put 0 2 test2
+printStore 1
