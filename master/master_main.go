@@ -27,11 +27,6 @@ var clientIds map[int]int
 var clientId = 0
 var serverId = 0
 
-//var clientConnections map[int]connection
-// var serverConnections map[int]connection
-
-// not sure why we need this^
-
 const serverPath = "./server"
 const clientPath = "./client"
 
@@ -104,29 +99,24 @@ func main() {
 			}
 		case "breakConnection":
 			var unused string
-			var id, id2 int
-			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id, &id2)
+			var id1, id2 int
+			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id1, &id2)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
-			fmt.Println(id, id2)
+			fmt.Println(id1, id2)
 		case "createConnection":
-			fmt.Println(strs[1])
-			fmt.Println(strs[2])
-			var clientId, serverId int
-			var err error
-			if clientId, err = strconv.Atoi(strs[1]); err != nil {
+			var unused string
+			var id1, id2 int
+			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id1, &id2)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
+			//createConnection(id1, id2)
 
-			if serverId, err = strconv.Atoi(strs[2]); err != nil {
-				log.Println(err)
-				continue
-			}
-
-			clientCalls[clientId].connect("connecting", "test", serverId)
+			//rpcCalls[clientId].connect("connecting", "test", serverId)
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
@@ -232,14 +222,10 @@ func joinClient(clientId, serverId int) error {
 	return err
 }
 
-func getClientId() int {
-	clientId++
-	return clientId - 1
+func createConnection(id1, id2 int) {
 }
 
-func getServerId() int {
-	serverId++
-	return serverId - 1
+func breakConnection(id1, id2 int) {
 }
 
 func printStore(serverId int) {
@@ -275,4 +261,14 @@ func listen(port int) error {
 		go rpcServer.Accept(conn)
 	}
 	return err
+}
+
+func getClientId() int {
+	clientId++
+	return clientId - 1
+}
+
+func getServerId() int {
+	serverId++
+	return serverId - 1
 }
