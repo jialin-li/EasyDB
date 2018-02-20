@@ -114,9 +114,8 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			//createConnection(id1, id2)
+			createConnection(id1, id2)
 
-			//rpcCalls[clientId].connect("connecting", "test", serverId)
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
@@ -128,10 +127,8 @@ func main() {
 				log.Println(err)
 				continue
 			}
-
-			if !term {
-				serverId = clientIds[serverId]
-			}
+			// translate to internal server id
+			serverId = clientIds[serverId]
 			printStore(serverId)
 
 		case "put":
@@ -143,9 +140,8 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			if !term {
-				clientId = clientIds[clientId]
-			}
+			// translate to internal client id
+			clientId = clientIds[clientId]
 			put(clientId, key, value)
 
 		case "get":
@@ -157,9 +153,8 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			if !term {
-				clientId = clientIds[clientId]
-			}
+			// translate to internal client id
+			clientId = clientIds[clientId]
 			get(clientId, key)
 
 		default:
@@ -223,6 +218,7 @@ func joinClient(clientId, serverId int) error {
 }
 
 func createConnection(id1, id2 int) {
+	//rpcCalls[clientId].connect("connecting", "test", serverId)
 }
 
 func breakConnection(id1, id2 int) {
@@ -271,4 +267,13 @@ func getClientId() int {
 func getServerId() int {
 	serverId++
 	return serverId - 1
+}
+
+func getIdType(id int) int {
+	if _, ok := serverIds[id]; ok {
+		return shared.ServerType
+	} else if _, ok := clientIds[id]; ok {
+		return shared.ClientType
+	}
+	return -1
 }

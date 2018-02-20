@@ -69,10 +69,20 @@ func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 	case shared.ClientType:
 		conn, _ := shared.Dial(shared.ClientPort + args.ID)
 		clientCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
+		// if we are running in term mode then internal ids are not updated by
+		// joinClient command
+		if term {
+			clientIds[args.ID] = args.ID
+		}
 
 	case shared.ServerType:
 		conn, _ := shared.Dial(shared.ServerPort + args.ID)
 		serverCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
+		// if we are running in term mode then internal ids are not updated by
+		// joinServer command
+		if term {
+			serverIds[args.ID] = args.ID
+		}
 
 	default:
 		log.Println("Notify failed")
