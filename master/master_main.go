@@ -5,6 +5,7 @@ import (
 	// "errors"
 	"flag"
 	"fmt"
+	"github.com/jialin-li/EasyDB/shared"
 	"log"
 	"net"
 	"net/rpc"
@@ -34,8 +35,6 @@ var serverId = 0
 const serverPath = "./server"
 const clientPath = "./client"
 
-var port = 1234
-
 var clientCalls map[int]*rpcClient
 var serverCalls map[int]*rpcClient
 
@@ -57,7 +56,7 @@ func main() {
 	clientCalls = make(map[int]*rpcClient)
 	serverCalls = make(map[int]*rpcClient)
 
-	listen(port)
+	listen(shared.MasterPort)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
