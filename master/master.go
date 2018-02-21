@@ -16,14 +16,22 @@ type rpcClient struct {
 }
 
 // client
-func (t *rpcClient) connect(msg, key string, serverId int) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{Msg: msg, Key: key, Value: strconv.Itoa(serverId)}
-	//args := &shared.Args{msg, key, value}
+func (t *rpcClient) connectClient(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Connect", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) disconnectClient(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVClient.Disconnect", args, &reply)
+	if err != nil {
+		log.Println("client error:", err)
 	}
 	return nil
 }
@@ -33,7 +41,7 @@ func (t *rpcClient) put(key, value string) error {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
 	}
 	return nil
 }
@@ -43,12 +51,32 @@ func (t *rpcClient) get(key string) string {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
 	}
 	return reply.Result
 }
 
 // server
+func (t *rpcClient) connectServer(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Connect", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) disconnectServer(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Disconnect", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return nil
+}
+
 func (t *rpcClient) printStore() string {
 	fmt.Println("sending printStore")
 	args := &shared.Args{}

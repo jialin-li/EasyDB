@@ -34,6 +34,7 @@ func (*KVServer) Terminate(args *shared.Args, reply *shared.Response) error {
 
 // Ask the server to connect to another server
 func (*KVServer) Connect(args *shared.Args, reply *shared.Response) error {
+	fmt.Println("trying to connect to:", args.Value)
 	return nil
 }
 
@@ -46,6 +47,7 @@ func (*KVServer) DumpStore(args *shared.Args, reply *shared.Response) error {
 
 // Disconnect if we are clients of any other servers
 func (*KVServer) Disconnect(args *shared.Args, reply *shared.Response) error {
+	fmt.Println("trying to disconnect from:", args.Value)
 	return nil
 }
 

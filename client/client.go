@@ -65,15 +65,26 @@ func (*KVClient) Connect(args *shared.Args, reply *shared.Response) error {
 	if err != nil {
 		log.Println(err)
 	}
-	setupConn(serverId)
-	fmt.Println("connected")
+	err = setupConn(serverId)
+	//fmt.Println("connected")
 	//TODO: give appropriate reply if connection already exists
 	return err
 }
 
 // Disconnect if we are clients of any other servers
 func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
-	return nil
+	// server id that we are going to disconnect from
+	serverId, err := strconv.Atoi(args.Value)
+	if err != nil {
+		log.Println(err)
+	}
+	//fmt.Println("disconnecting from:", serverId)
+	err = serverCalls[serverId].client.Close()
+	// delete the connection from the map of server calls
+	delete(serverCalls, serverId)
+	//TODO: give appropriate reply if connection does not exist
+
+	return err
 }
 
 // Put a KV pair
@@ -94,8 +105,10 @@ func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
 	return nil
 }
 
-func setupConn(serverId int) {
+func setupConn(serverId int) error {
 	// connect to the specified server
-	conn, _ := shared.Dial(serverId + shared.ServerPort)
+	conn, err := shared.Dial(serverId + shared.ServerPort)
 	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
+
+	return err
 }

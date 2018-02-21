@@ -105,7 +105,8 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			fmt.Println(id1, id2)
+			breakConnection(id1, id2)
+
 		case "createConnection":
 			var unused string
 			var id1, id2 int
@@ -128,7 +129,7 @@ func main() {
 				continue
 			}
 			// translate to internal server id
-			serverId = clientIds[serverId]
+			serverId = serverIds[serverId]
 			printStore(serverId)
 
 		case "put":
@@ -179,9 +180,9 @@ func joinServer(id int) error {
 
 	// wait for server to notify us before proceeding
 	if err == nil {
-		// NOTE: underlying assumption is that only one Notify will come in at a time
-		// this is fine, just need to keep it in mind when we do things that may require
-		// multiple servers to coordinate (ex. stablize)
+		// NOTE: underlying assumption is that only one Notify will come in at
+		// a time this is fine, just need to keep it in mind when we do things
+		// that may require multiple servers to coordinate (ex. stablize)
 		wg.Add(1)
 		// TODO: add a timeout?
 		wg.Wait()
@@ -205,7 +206,10 @@ func joinClient(clientId, serverId int) error {
 	clientIds[clientId] = cid
 
 	// start a new client
-	client := exec.Command(clientPath, strconv.Itoa(cid), strconv.Itoa(serverIds[serverId]))
+	client := exec.Command(
+		clientPath,
+		strconv.Itoa(cid),
+		strconv.Itoa(serverIds[serverId]))
 	err := client.Start()
 
 	// wait for client to notify us before proceeding
@@ -218,10 +222,57 @@ func joinClient(clientId, serverId int) error {
 }
 
 func createConnection(id1, id2 int) {
-	//rpcCalls[clientId].connect("connecting", "test", serverId)
+	// connecting two servers
+	if getIdType(id1) == shared.ServerType &&
+		getIdType(id2) == shared.ServerType {
+		//translate to internal server ids
+		id1 = serverIds[id1]
+		id2 = serverIds[id2]
+
+		// does not matter which one we send rpc to since they are
+		// connecting with each other
+		serverCalls[id1].connectServer(id2)
+	} else if getIdType(id1) == shared.ClientType {
+		// otherwise we are connect a client to a server
+		//translate to internal ids
+		id1 = clientIds[id1]
+		id2 = serverIds[id2]
+
+		clientCalls[id1].connectClient(id2)
+	} else if getIdType(id2) == shared.ClientType {
+		//translate to internal ids
+		id1 = serverIds[id1]
+		id2 = clientIds[id2]
+
+		clientCalls[id2].connectClient(id1)
+	}
 }
 
 func breakConnection(id1, id2 int) {
+	// disconnecting two servers
+	if getIdType(id1) == shared.ServerType &&
+		getIdType(id2) == shared.ServerType {
+		//translate to internal server ids
+		id1 = serverIds[id1]
+		id2 = serverIds[id2]
+
+		// does not matter which one we send rpc to since they are
+		// disconnecting from each other
+		serverCalls[id1].disconnectServer(id2)
+	} else if getIdType(id1) == shared.ClientType {
+		// otherwise we disconnect a client from a server translate to
+		// internal ids
+		id1 = clientIds[id1]
+		id2 = serverIds[id2]
+
+		clientCalls[id1].disconnectClient(id2)
+	} else if getIdType(id2) == shared.ClientType {
+		//translate to internal ids
+		id1 = serverIds[id1]
+		id2 = clientIds[id2]
+
+		clientCalls[id2].disconnectClient(id1)
+	}
 }
 
 func printStore(serverId int) {

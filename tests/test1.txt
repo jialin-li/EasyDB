@@ -5,3 +5,13 @@ get 0 1
 put 0 2 test2
 get 0 2
 printStore 1
+
+breakConnection 1 0
+put 0 3 test3
+get 0 3
+printStore 1
+
+createConnection 1 0
+put 0 3 testnew
+get 0 3
+printStore 1
