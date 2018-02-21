@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	// "errors"
 	"flag"
 	"fmt"
 	"log"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/jialin-li/EasyDB/shared"
 )
 
 type connection struct {
@@ -22,29 +23,23 @@ type connection struct {
 }
 
 var IdMap map[int]int
+var conns map[int]*rpcClient
 
-// var clientIds map[int]int
-var clientId = 0
-var serverId = 0
+var clientId = shared.ClientStart
+var serverId = shared.ServerStart
 
-//var clientConnections map[int]connection
-// var serverConnections map[int]connection
 const serverPath = "./server"
 const clientPath = "./client"
 
 var port = 1234
-
-// var clientCalls map[int]*rpcClient
-var conns map[int]*rpcClient
 
 var wg sync.WaitGroup
 
 var term bool
 
 func main() {
-	//clientConnections = make(map[int]connection)
-	// serverConnections = make(map[int]connection)
-
+	// used for scanf
+	var unused string
 	termPtr := flag.Bool("term", false, "run as program")
 
 	flag.Parse()
@@ -53,12 +48,9 @@ func main() {
 	}
 
 	IdMap = make(map[int]int)
-	// clientIds = make(map[int]int)
-
 	conns = make(map[int]*rpcClient)
-	// serverCalls = make(map[int]*rpcClient)
 
-	listen(port)
+	listen(shared.MasterPort)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -75,8 +67,9 @@ func main() {
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":
 			var id int
-			var err error
-			if id, err = strconv.Atoi(strs[1]); err != nil {
+
+			_, err := fmt.Sscanf(text, "%s %d", &unused, &id)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
@@ -86,24 +79,25 @@ func main() {
 				continue
 			}
 		case "killServer":
-			if id, err := strconv.Atoi(strs[1]); err == nil {
-				sid := -1
-				if !term {
-					sid = IdMap[id]
-				}
-				killServer(sid, id)
-			} else {
-				log.Println(err)
-			}
-		case "joinClient":
-			var clientId, serverId int
-			var err error
-			if clientId, err = strconv.Atoi(strs[1]); err != nil {
+			var id int
+
+			_, err := fmt.Sscanf(text, "%s %d", &unused, &id)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
 
-			if serverId, err = strconv.Atoi(strs[2]); err != nil {
+			if err = killServer(id); err != nil {
+				log.Println(err)
+				continue
+			}
+
+		case "joinClient":
+			var clientId, serverId int
+
+			_, err := fmt.Sscanf(
+				text, "%s %d %d", &unused, &clientId, &serverId)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
@@ -113,56 +107,66 @@ func main() {
 				continue
 			}
 		case "breakConnection":
-			fmt.Println(strs[1])
+			var id1, id2 int
+			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id1, &id2)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			breakConnection(id1, id2)
+
 		case "createConnection":
-			fmt.Println(strs[1])
-			fmt.Println(strs[2])
-			var clientId, serverId int
-			var err error
-			if clientId, err = strconv.Atoi(strs[1]); err != nil {
+			var id1, id2 int
+			_, err := fmt.Sscanf(text, "%s %d %d", &unused, &id1, &id2)
+			if err != nil {
 				log.Println(err)
 				continue
 			}
 
-			if serverId, err = strconv.Atoi(strs[2]); err != nil {
+			if err = createConnection(id1, id2); err != nil {
 				log.Println(err)
-				continue
 			}
 
-			conns[clientId].connect("connecting", "test", serverId)
-			//if err = joinClient(clientId, serverId); err != nil {
-			//log.Println(err)
-			//continue
-			//}
 		case "stabilize":
 			fmt.Println(strs[1])
 		case "printStore":
-			if serverId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					serverId = IdMap[serverId]
-				}
-				printStore(serverId)
-			} else {
+			var serverId int
+			_, err := fmt.Sscanf(
+				text, "%s %d", &unused, &serverId)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+			// translate to internal server id
+			serverId = IdMap[serverId]
+			printStore(serverId)
+
 		case "put":
-			if clientId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					clientId = IdMap[clientId]
-				}
-				put(clientId, strs[2], strs[3])
-			} else {
+			var key, value string
+			var clientId int
+			_, err := fmt.Sscanf(
+				text, "%s %d %s %s", &unused, &clientId, &key, &value)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+			// translate to internal client id
+			clientId = IdMap[clientId]
+			put(clientId, key, value)
+
 		case "get":
-			if clientId, err := strconv.Atoi(strs[1]); err == nil {
-				if !term {
-					clientId = IdMap[clientId]
-				}
-				get(clientId, strs[2])
-			} else {
+			var key string
+			var clientId int
+			_, err := fmt.Sscanf(
+				text, "%s %d %s", &unused, &clientId, &key)
+			if err != nil {
 				log.Println(err)
+				continue
 			}
+			// translate to internal client id
+			clientId = IdMap[clientId]
+			get(clientId, key)
+
 		default:
 			fmt.Println("bad command")
 		}
@@ -185,9 +189,6 @@ func joinServer(id int) error {
 
 	// wait for server to notify us before proceeding
 	if err == nil {
-		// NOTE: underlying assumption is that only one Notify will come in at a time
-		// this is fine, just need to keep it in mind when we do things that may require
-		// multiple servers to coordinate (ex. stablize)
 		wg.Add(1)
 		// TODO: add a timeout?
 		wg.Wait()
@@ -211,7 +212,10 @@ func joinClient(clientId, serverId int) error {
 	IdMap[clientId] = cid
 
 	// start a new client
-	client := exec.Command(clientPath, strconv.Itoa(cid), strconv.Itoa(IdMap[serverId]))
+	client := exec.Command(
+		clientPath,
+		strconv.Itoa(cid),
+		strconv.Itoa(IdMap[serverId]))
 	err := client.Start()
 
 	// wait for client to notify us before proceeding
@@ -223,22 +227,53 @@ func joinClient(clientId, serverId int) error {
 	return err
 }
 
-func getClientId() int {
-	clientId++
-	return clientId - 1
+func createConnection(id1, id2 int) error {
+	id1, ok := IdMap[id1]
+	if !ok {
+		return fmt.Errorf("id1 is not a valid id %d ", id1)
+	}
+
+	id2, ok = IdMap[id2]
+	if !ok {
+		return fmt.Errorf("id2 is not a valid id %d ", id2)
+	}
+
+	if isClientId(id1) {
+		return conns[id1].clientConnect(id2)
+	} else if isClientId(id2) {
+		return conns[id2].clientConnect(id1)
+	}
+	return conns[id1].serverConnect(id2)
 }
 
-func getServerId() int {
-	serverId++
-	return serverId - 1
+func breakConnection(id1, id2 int) error {
+	id1, ok := IdMap[id1]
+	if !ok {
+		return fmt.Errorf("id1 is not a valid id %d ", id1)
+	}
+
+	id2, ok = IdMap[id2]
+	if !ok {
+		return fmt.Errorf("id2 is not a valid id %d ", id2)
+	}
+
+	if isClientId(id1) {
+		// fmt.Println("In here!")
+		return conns[id1].clientDisconnect(id2)
+	} else if isClientId(id2) {
+		return conns[id2].clientDisconnect(id1)
+	}
+	return conns[id1].serverDisconnect(id2)
 }
 
 func printStore(serverId int) {
 	value := conns[serverId].printStore()
 	// parse value
-	store := strings.Split(value, " ")
-	for _, v := range store {
-		fmt.Println(v)
+	if value != "" {
+		store := strings.Split(value, " ")
+		for _, v := range store {
+			fmt.Println(v)
+		}
 	}
 }
 
@@ -258,18 +293,22 @@ func get(clientId int, key string) error {
 	return fmt.Errorf("Get: Client id does not exist")
 }
 
-func killServer(serverId, id int) error {
-	delete(IdMap, id)
-	sid := serverId
-	if sid == -1 {
-		sid = id
+func killServer(id int) error {
+	sid, ok := IdMap[id]
+	if !ok {
+		return fmt.Errorf("KillServer: server id does not exist")
 	}
 
+	defer delete(IdMap, id)
+
 	if conn, ok := conns[sid]; ok {
-		delete(conns, sid)
 		conn.kill()
+		delete(conns, sid)
+	} else {
+		return fmt.Errorf("KillServer: server connection does not exist")
 	}
-	return fmt.Errorf("Get: server id does not exist")
+
+	return nil
 }
 
 func listen(port int) error {
@@ -286,4 +325,18 @@ func listen(port int) error {
 		go rpcServer.Accept(conn)
 	}
 	return err
+}
+
+func getClientId() int {
+	clientId++
+	return clientId - 1
+}
+
+func getServerId() int {
+	serverId++
+	return serverId - 1
+}
+
+func isClientId(id int) bool {
+	return id < shared.ServerStart
 }

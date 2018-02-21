@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,14 +16,22 @@ type rpcClient struct {
 }
 
 // client
-func (t *rpcClient) connect(msg, key string, serverId int) error {
-	fmt.Println("sending", msg)
-	args := &shared.Args{Msg: msg, Key: key, Value: strconv.Itoa(serverId)}
-	//args := &shared.Args{msg, key, value}
+func (t *rpcClient) clientConnect(clientId int) error {
+	args := &shared.Args{Value: strconv.Itoa(clientId)}
 	var reply shared.Response
 	err := t.client.Call("KVClient.Connect", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) clientDisconnect(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVClient.Disconnect", args, &reply)
+	if err != nil {
+		log.Println("client error:", err)
 	}
 	return nil
 }
@@ -34,7 +41,7 @@ func (t *rpcClient) put(key, value string) error {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Put", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
 	}
 	return nil
 }
@@ -44,7 +51,7 @@ func (t *rpcClient) get(key string) string {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
-		log.Println("server error:", err)
+		log.Println("client error:", err)
 	}
 	return reply.Result
 }
@@ -60,6 +67,26 @@ func (t *rpcClient) kill() error {
 }
 
 // server
+func (t *rpcClient) serverConnect(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Connect", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return nil
+}
+
+func (t *rpcClient) serverDisconnect(serverId int) error {
+	args := &shared.Args{Value: strconv.Itoa(serverId)}
+	var reply shared.Response
+	err := t.client.Call("KVServer.Disconnect", args, &reply)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+	return nil
+}
+
 func (t *rpcClient) printStore() string {
 	fmt.Println("sending printStore")
 	args := &shared.Args{}
@@ -75,19 +102,12 @@ func (t *rpcClient) printStore() string {
 type Master int
 
 func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
-	// Dial back
-	switch args.Type {
-	case shared.ClientType:
-		conn, _ := shared.Dial(shared.ClientPort + args.ID)
-		clientCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
+	// fmt.Printf("Master: Notify, id %v \n", args.ID)
+	conn, _ := shared.Dial(shared.BasePort + args.ID)
+	conns[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
-	case shared.ServerType:
-		conn, _ := shared.Dial(shared.ServerPort + args.ID)
-		serverCalls[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
-
-	default:
-		log.Println("Notify failed")
-		return errors.New("Unknown rpc client type")
+	if term {
+		IdMap[args.ID] = args.ID
 	}
 
 	if !term {

@@ -7,10 +7,11 @@ const (
 
 	// port numbers hopefully these are not used?
 	MasterPort = 1234
-	// client ports are determined by 1240 + clientId
-	ClientPort = 1240
-	// server ports are determined by 1250 + serverId
-	ServerPort = 1250
+	// common port based
+	BasePort = 1240
+	// client starts allocating port number from base port
+	ClientStart = 0
+	ServerStart = 1000
 
 	ERR_DEP = "ERR_DEP"
 	ERR_KEY = "ERR_KEY"

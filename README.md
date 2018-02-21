@@ -7,6 +7,9 @@
 `$ cd bin/`  
 `$ ./master`  
 
+### Testing
+`$ make & make test`  
+
 ___
 
 ### Running the system manually

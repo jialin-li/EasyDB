@@ -52,7 +52,7 @@ func main() {
 	setupConn(serverId)
 
 	// Listen for connections from master and servers
-	listen(shared.ClientPort + clientId)
+	listen(shared.BasePort + clientId)
 
 	// Tries to connect to localhost:1234 (The port on which master's rpc
 	// server is listening

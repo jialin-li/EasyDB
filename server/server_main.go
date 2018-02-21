@@ -50,7 +50,7 @@ func main() {
 	// set up key value store
 	db = make(map[string]*dbValue)
 
-	listen(shared.ServerPort + serverId)
+	listen(shared.BasePort + serverId)
 
 	// Tries to connect to localhost:1234 (The port on which master's rpc
 	// server is listening)
@@ -111,6 +111,10 @@ func printStore() {
 }
 
 func dumpStore() string {
+	if len(db) == 0 {
+		return ""
+	}
+
 	var store string
 	for k, v := range db {
 		store += k + ":" + v.value + " "
