@@ -15,3 +15,8 @@ createConnection 1 0
 put 0 3 testnew
 get 0 3
 printStore 1
+
+
+joinServer 2
+createConnection 1 2
+breakConnection 1 2

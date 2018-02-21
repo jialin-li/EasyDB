@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/rpc"
+	"strconv"
 
 	"github.com/jialin-li/EasyDB/shared"
 )
@@ -35,6 +36,13 @@ func (*KVServer) Terminate(args *shared.Args, reply *shared.Response) error {
 // Ask the server to connect to another server
 func (*KVServer) Connect(args *shared.Args, reply *shared.Response) error {
 	fmt.Println("trying to connect to:", args.Value)
+	serverId, err := strconv.Atoi(args.Value)
+	if err != nil {
+		log.Println("server error:", err)
+	}
+
+	conn, _ := shared.Dial(shared.BasePort + serverId)
+	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
 	return nil
 }
 
@@ -47,8 +55,19 @@ func (*KVServer) DumpStore(args *shared.Args, reply *shared.Response) error {
 
 // Disconnect if we are clients of any other servers
 func (*KVServer) Disconnect(args *shared.Args, reply *shared.Response) error {
-	fmt.Println("trying to disconnect from:", args.Value)
-	return nil
+	fmt.Println("trying to disconnect to:", args.Value)
+	// server id that we are going to disconnect from
+	serverId, err := strconv.Atoi(args.Value)
+	if err != nil {
+		log.Println(err)
+	}
+	//fmt.Println("disconnecting from:", serverId)
+	err = serverCalls[serverId].client.Close()
+	// delete the connection from the map of server calls
+	delete(serverCalls, serverId)
+	//TODO: give appropriate reply if connection does not exist
+
+	return err
 }
 
 // No more new write requests will be send until the next write

@@ -106,6 +106,17 @@ func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 	conn, _ := shared.Dial(shared.BasePort + args.ID)
 	conns[args.ID] = &rpcClient{client: rpc.NewClient(conn)}
 
+	// if a server is notifying us, then we connect it with every other server
+	// that is not itself
+	if !isClientId(args.ID) {
+		for _, id := range IdMap {
+			if !isClientId(id) && id != args.ID {
+				conns[id].serverConnect(args.ID)
+				conns[args.ID].serverConnect(id)
+			}
+		}
+	}
+
 	if term {
 		IdMap[args.ID] = args.ID
 	}

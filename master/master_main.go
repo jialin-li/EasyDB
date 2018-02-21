@@ -243,6 +243,7 @@ func createConnection(id1, id2 int) error {
 	} else if isClientId(id2) {
 		return conns[id2].clientConnect(id1)
 	}
+	conns[id2].serverConnect(id1)
 	return conns[id1].serverConnect(id2)
 }
 
@@ -263,6 +264,7 @@ func breakConnection(id1, id2 int) error {
 	} else if isClientId(id2) {
 		return conns[id2].clientDisconnect(id1)
 	}
+	conns[id2].serverDisconnect(id1)
 	return conns[id1].serverDisconnect(id2)
 }
 
