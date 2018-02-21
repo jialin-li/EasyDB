@@ -229,9 +229,9 @@ func createConnection(id1, id2 int) {
 		id1 = serverIds[id1]
 		id2 = serverIds[id2]
 
-		// does not matter which one we send rpc to since they are
-		// connecting with each other
+		// connect with each other
 		serverCalls[id1].connectServer(id2)
+		serverCalls[id2].connectServer(id1)
 	} else if getIdType(id1) == shared.ClientType {
 		// otherwise we are connect a client to a server
 		//translate to internal ids
@@ -256,9 +256,9 @@ func breakConnection(id1, id2 int) {
 		id1 = serverIds[id1]
 		id2 = serverIds[id2]
 
-		// does not matter which one we send rpc to since they are
-		// disconnecting from each other
+		// disconnect from each other
 		serverCalls[id1].disconnectServer(id2)
+		serverCalls[id2].disconnectServer(id1)
 	} else if getIdType(id1) == shared.ClientType {
 		// otherwise we disconnect a client from a server translate to
 		// internal ids

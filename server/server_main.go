@@ -26,6 +26,8 @@ type dbValue struct {
 
 var db map[string]*dbValue
 
+var serverCalls map[int]*rpcClient
+
 var term bool
 
 func main() {
@@ -50,6 +52,8 @@ func main() {
 
 	// set up key value store
 	db = make(map[string]*dbValue)
+
+	serverCalls = make(map[int]*rpcClient)
 
 	listen(shared.ServerPort + serverId)
 

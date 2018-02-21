@@ -112,6 +112,13 @@ func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 			serverIds[args.ID] = args.ID
 		}
 
+		for _, serverId := range serverIds {
+			if serverId != args.ID {
+				serverCalls[args.ID].connectServer(serverId)
+				serverCalls[serverId].connectServer(args.ID)
+			}
+		}
+
 	default:
 		log.Println("Notify failed")
 		return errors.New("Unknown rpc client type")
