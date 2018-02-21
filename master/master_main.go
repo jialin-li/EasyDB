@@ -232,7 +232,6 @@ func createConnection(id1, id2 int) error {
 	if !ok {
 		return fmt.Errorf("id1 is not a valid id %d ", id1)
 	}
-
 	id2, ok = IdMap[id2]
 	if !ok {
 		return fmt.Errorf("id2 is not a valid id %d ", id2)
@@ -251,14 +250,12 @@ func breakConnection(id1, id2 int) error {
 	if !ok {
 		return fmt.Errorf("id1 is not a valid id %d ", id1)
 	}
-
 	id2, ok = IdMap[id2]
 	if !ok {
 		return fmt.Errorf("id2 is not a valid id %d ", id2)
 	}
 
 	if isClientId(id1) {
-		// fmt.Println("In here!")
 		return conns[id1].clientDisconnect(id2)
 	} else if isClientId(id2) {
 		return conns[id2].clientDisconnect(id1)

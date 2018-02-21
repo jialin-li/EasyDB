@@ -88,7 +88,6 @@ func (t *rpcClient) serverDisconnect(serverId int) error {
 }
 
 func (t *rpcClient) printStore() string {
-	fmt.Println("sending printStore")
 	args := &shared.Args{}
 	var reply shared.Response
 	err := t.client.Call("KVServer.DumpStore", args, &reply)

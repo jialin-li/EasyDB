@@ -88,21 +88,33 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 }
 
 // Put a KV pair
-func (*KVClient) Put(args *shared.Args, reply *shared.Response) error {
+func (*KVClient) Put(args *shared.Args, reply *shared.Response) (err error) {
 	// called by the master, will issue request to server
 	// go through list of server connections
 	for sid := range serverCalls {
-		return serverCalls[sid].put(args.Key, args.Value)
+		if err = serverCalls[sid].put(args.Key, args.Value); err == rpc.ErrShutdown {
+			// NOTE: welp if connection is closed maybe we should remove it lol
+			// this is only valid if we don't expect automatic reconnect
+			// delete(serverCalls, sid)
+		} else if err == nil {
+			return nil
+		}
 	}
-	return nil
+	return err
 }
 
 // Get a Value based on a key
-func (t *KVClient) Get(args *shared.Args, reply *shared.Response) error {
+func (t *KVClient) Get(args *shared.Args, reply *shared.Response) (err error) {
 	for sid := range serverCalls {
-		return serverCalls[sid].get(args.Key, reply)
+		if err = serverCalls[sid].get(args.Key, reply); err == rpc.ErrShutdown {
+			// NOTE: welp if connection is closed maybe we should remove it lol
+			// this is only valid if we don't expect automatic reconnect
+			// delete(serverCalls, sid)
+		} else if err == nil {
+			return nil
+		}
 	}
-	return nil
+	return err
 }
 
 func setupConn(serverId int) error {
