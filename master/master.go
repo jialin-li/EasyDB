@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/rpc"
 	"strconv"
@@ -46,6 +47,16 @@ func (t *rpcClient) get(key string) string {
 		log.Println("server error:", err)
 	}
 	return reply.Result
+}
+
+func (t *rpcClient) kill() error {
+	// args := &shared.Args{Key: key, Value: value}
+	// var reply shared.Response
+	err := t.client.Call("KVServer.Terminate", &shared.Args{}, &shared.Response{})
+	if err != nil && err != io.ErrUnexpectedEOF {
+		log.Println("server error:", err)
+	}
+	return nil
 }
 
 // server

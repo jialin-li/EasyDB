@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	// "errors"
 	"flag"
 	"fmt"
 	"log"
@@ -25,7 +24,7 @@ type dbValue struct {
 }
 
 var db map[string]*dbValue
-
+var serverListener net.Listener
 var term bool
 
 func main() {
@@ -129,7 +128,7 @@ func listen(port int) error {
 	rpcServer.Register(serverInterface)
 
 	// Listen for incoming tcp packets on specified port.
-	conn, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	serverListener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	// if everything goes well, we can call Accept in a go routine and add to
 	// waitgroup to allow main to block after setup
 	if err == nil {
@@ -137,7 +136,7 @@ func listen(port int) error {
 		// TODO: handle failure more gracefully
 		go func() {
 			defer wg.Done()
-			rpcServer.Accept(conn)
+			rpcServer.Accept(serverListener)
 		}()
 	}
 	return err

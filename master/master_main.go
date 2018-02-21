@@ -21,23 +21,21 @@ type connection struct {
 	Conn net.Conn
 }
 
-var serverIds map[int]int
-var clientIds map[int]int
+var IdMap map[int]int
+
+// var clientIds map[int]int
 var clientId = 0
 var serverId = 0
 
 //var clientConnections map[int]connection
 // var serverConnections map[int]connection
-
-// not sure why we need this^
-
 const serverPath = "./server"
 const clientPath = "./client"
 
 var port = 1234
 
-var clientCalls map[int]*rpcClient
-var serverCalls map[int]*rpcClient
+// var clientCalls map[int]*rpcClient
+var conns map[int]*rpcClient
 
 var wg sync.WaitGroup
 
@@ -54,11 +52,11 @@ func main() {
 		term = true
 	}
 
-	serverIds = make(map[int]int)
-	clientIds = make(map[int]int)
+	IdMap = make(map[int]int)
+	// clientIds = make(map[int]int)
 
-	clientCalls = make(map[int]*rpcClient)
-	serverCalls = make(map[int]*rpcClient)
+	conns = make(map[int]*rpcClient)
+	// serverCalls = make(map[int]*rpcClient)
 
 	listen(port)
 
@@ -88,7 +86,15 @@ func main() {
 				continue
 			}
 		case "killServer":
-			fmt.Println(strs[1])
+			if id, err := strconv.Atoi(strs[1]); err == nil {
+				sid := -1
+				if !term {
+					sid = IdMap[id]
+				}
+				killServer(sid, id)
+			} else {
+				log.Println(err)
+			}
 		case "joinClient":
 			var clientId, serverId int
 			var err error
@@ -123,7 +129,7 @@ func main() {
 				continue
 			}
 
-			clientCalls[clientId].connect("connecting", "test", serverId)
+			conns[clientId].connect("connecting", "test", serverId)
 			//if err = joinClient(clientId, serverId); err != nil {
 			//log.Println(err)
 			//continue
@@ -133,7 +139,7 @@ func main() {
 		case "printStore":
 			if serverId, err := strconv.Atoi(strs[1]); err == nil {
 				if !term {
-					serverId = clientIds[serverId]
+					serverId = IdMap[serverId]
 				}
 				printStore(serverId)
 			} else {
@@ -142,7 +148,7 @@ func main() {
 		case "put":
 			if clientId, err := strconv.Atoi(strs[1]); err == nil {
 				if !term {
-					clientId = clientIds[clientId]
+					clientId = IdMap[clientId]
 				}
 				put(clientId, strs[2], strs[3])
 			} else {
@@ -151,7 +157,7 @@ func main() {
 		case "get":
 			if clientId, err := strconv.Atoi(strs[1]); err == nil {
 				if !term {
-					clientId = clientIds[clientId]
+					clientId = IdMap[clientId]
 				}
 				get(clientId, strs[2])
 			} else {
@@ -165,13 +171,13 @@ func main() {
 
 func joinServer(id int) error {
 	// check if a server with id already exists
-	if _, ok := serverIds[id]; ok {
+	if _, ok := IdMap[id]; ok {
 		return fmt.Errorf("joinServer: server id %d already exists!", id)
 	}
 
 	// update to our mapping
 	sid := getServerId()
-	serverIds[id] = sid
+	IdMap[id] = sid
 
 	// start a new server
 	server := exec.Command(serverPath, strconv.Itoa(sid))
@@ -191,21 +197,21 @@ func joinServer(id int) error {
 
 func joinClient(clientId, serverId int) error {
 	// check if a client with id already exists
-	if _, ok := clientIds[clientId]; ok {
+	if _, ok := IdMap[clientId]; ok {
 		return fmt.Errorf("joinClient: client id %d already exists!", clientId)
 	}
 
 	// get the server id
-	if _, ok := serverIds[serverId]; !ok {
+	if _, ok := IdMap[serverId]; !ok {
 		return fmt.Errorf("joinClient: server id %d does not exist!", serverId)
 	}
 
 	// update to our mapping
 	cid := getClientId()
-	clientIds[clientId] = cid
+	IdMap[clientId] = cid
 
 	// start a new client
-	client := exec.Command(clientPath, strconv.Itoa(cid), strconv.Itoa(serverIds[serverId]))
+	client := exec.Command(clientPath, strconv.Itoa(cid), strconv.Itoa(IdMap[serverId]))
 	err := client.Start()
 
 	// wait for client to notify us before proceeding
@@ -228,22 +234,42 @@ func getServerId() int {
 }
 
 func printStore(serverId int) {
-	value := serverCalls[serverId].printStore()
+	value := conns[serverId].printStore()
 	// parse value
 	store := strings.Split(value, " ")
 	for _, v := range store {
 		fmt.Println(v)
 	}
 }
+
 func put(clientId int, key, value string) error {
-	clientCalls[clientId].put(key, value)
-	return nil
+	if conn, ok := conns[clientId]; ok {
+		return conn.put(key, value)
+	}
+	return fmt.Errorf("Put: Client id does not exist")
 }
 
 func get(clientId int, key string) error {
-	value := clientCalls[clientId].get(key)
-	fmt.Printf("Retrieved: %v:%v\n", key, value)
-	return nil
+	if conn, ok := conns[clientId]; ok {
+		value := conn.get(key)
+		fmt.Printf("%v:%v\n", key, value)
+		return nil
+	}
+	return fmt.Errorf("Get: Client id does not exist")
+}
+
+func killServer(serverId, id int) error {
+	delete(IdMap, id)
+	sid := serverId
+	if sid == -1 {
+		sid = id
+	}
+
+	if conn, ok := conns[sid]; ok {
+		delete(conns, sid)
+		conn.kill()
+	}
+	return fmt.Errorf("Get: server id does not exist")
 }
 
 func listen(port int) error {

@@ -29,7 +29,7 @@ type KVServer int
 
 // Terminate a server
 func (*KVServer) Terminate(args *shared.Args, reply *shared.Response) error {
-	return nil
+	return serverListener.Close()
 }
 
 // Ask the server to connect to another server
