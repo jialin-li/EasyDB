@@ -69,17 +69,6 @@ func main() {
 	//test(client)
 }
 
-//func test(c *KVClient) {
-//// testing client
-//args := &shared.Args{"", "Hi", "World!"}
-//resp := &shared.Response{}
-//if err := c.Put(args, resp); err != nil {
-//fmt.Printf("Error returned from client.Put %v \n", err)
-//} else {
-//fmt.Printf("Heard back from server %s \n", resp.Result)
-//}
-//}
-
 func parseCommands() {
 	reader := bufio.NewReader(os.Stdin)
 	for {

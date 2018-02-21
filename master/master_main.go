@@ -242,6 +242,7 @@ func createConnection(id1, id2 int) error {
 	} else if isClientId(id2) {
 		return conns[id2].clientConnect(id1)
 	}
+	conns[id2].serverConnect(id1)
 	return conns[id1].serverConnect(id2)
 }
 
@@ -260,6 +261,7 @@ func breakConnection(id1, id2 int) error {
 	} else if isClientId(id2) {
 		return conns[id2].clientDisconnect(id1)
 	}
+	conns[id2].serverDisconnect(id1)
 	return conns[id1].serverDisconnect(id2)
 }
 
@@ -284,7 +286,7 @@ func put(clientId int, key, value string) error {
 func get(clientId int, key string) error {
 	if conn, ok := conns[clientId]; ok {
 		value := conn.get(key)
-		fmt.Printf("%v:%v\n", key, value)
+		fmt.Printf("%v\n", value)
 		return nil
 	}
 	return fmt.Errorf("Get: Client id does not exist")
