@@ -23,6 +23,7 @@ type connection struct {
 }
 
 var IdMap map[int]int
+var availServerIds []int
 var conns map[int]*rpcClient
 
 var clientId = shared.ClientStart
@@ -298,7 +299,9 @@ func killServer(id int) error {
 		return fmt.Errorf("KillServer: server id does not exist")
 	}
 
-	defer delete(IdMap, id)
+	delete(IdMap, id)
+	// add sid back to the mapping to reuse later
+	availServerIds = append(availServerIds, sid)
 
 	if conn, ok := conns[sid]; ok {
 		conn.kill()
@@ -332,8 +335,13 @@ func getClientId() int {
 }
 
 func getServerId() int {
-	serverId++
-	return serverId - 1
+	if len(availServerIds) == 0 {
+		serverId++
+		return serverId - 1
+	}
+	id := availServerIds[0]
+	availServerIds = availServerIds[1:]
+	return id
 }
 
 func isClientId(id int) bool {

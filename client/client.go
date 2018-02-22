@@ -93,9 +93,8 @@ func (*KVClient) Put(args *shared.Args, reply *shared.Response) (err error) {
 	// go through list of server connections
 	for sid := range serverCalls {
 		if err = serverCalls[sid].put(args.Key, args.Value); err == rpc.ErrShutdown {
-			// NOTE: welp if connection is closed maybe we should remove it lol
-			// this is only valid if we don't expect automatic reconnect
-			// delete(serverCalls, sid)
+			// lazily remove closed server connection
+			delete(serverCalls, sid)
 		} else if err == nil {
 			return nil
 		}
@@ -107,9 +106,8 @@ func (*KVClient) Put(args *shared.Args, reply *shared.Response) (err error) {
 func (t *KVClient) Get(args *shared.Args, reply *shared.Response) (err error) {
 	for sid := range serverCalls {
 		if err = serverCalls[sid].get(args.Key, reply); err == rpc.ErrShutdown {
-			// NOTE: welp if connection is closed maybe we should remove it lol
-			// this is only valid if we don't expect automatic reconnect
-			// delete(serverCalls, sid)
+			// lazily remove closed server connection
+			delete(serverCalls, sid)
 		} else if err == nil {
 			return nil
 		}
@@ -120,6 +118,7 @@ func (t *KVClient) Get(args *shared.Args, reply *shared.Response) (err error) {
 func setupConn(serverId int) error {
 	// connect to the specified server
 	conn, err := shared.Dial(serverId + shared.BasePort)
+	// overwrite existing connection, if any
 	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
 
 	return err
