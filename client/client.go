@@ -1,14 +1,8 @@
 package main
 
 import (
-	//	"bufio"
-	//	"flag"
-	"fmt"
 	"log"
-	//	"net"
 	"net/rpc"
-	//	"os"
-	//	"strings"
 	"strconv"
 
 	"github.com/jialin-li/EasyDB/shared"
@@ -34,19 +28,24 @@ func (t *rpcClient) notify(id int) error {
 func (t *rpcClient) put(key, value string) error {
 	args := &shared.Args{Key: key, Value: value}
 	if v, ok := keyTimes[key]; ok {
-		args.Time = v
+		args.Time = *v
 	}
 	reply := &shared.Response{}
 	err := t.client.Call("KVServer.Put", args, reply)
 	// if err != nil {
 	// 	log.Fatal("server error:", err)
 	// }
+	if err == nil {
+		// update our time and add it to the map
+		incTime(&reply.Time)
+		keyTimes[key] = &reply.Time
+		log.Printf("Put client: %s:%s, time %v \n", key, value, reply.Time)
+	}
 	// TODO: read the time stamp from reply and do things with it
 	return err
 }
 
 func (t *rpcClient) get(key string, reply *shared.Response) error {
-	fmt.Printf("getting %v \n", key)
 	args := &shared.Args{Key: key}
 	err := t.client.Call("KVServer.Get", args, reply)
 	// ?? do we need to deal with time stamp?
@@ -122,4 +121,12 @@ func setupConn(serverId int) error {
 	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
 
 	return err
+}
+
+func incTime(time *shared.Time) {
+	if clientId >= shared.MaxClient || clientId < 0 {
+		log.Println("clientId exceeds the slot given in the current timestamp")
+		return
+	}
+	time.Clock[clientId-shared.ClientStart]++
 }

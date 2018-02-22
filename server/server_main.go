@@ -20,17 +20,19 @@ var wg sync.WaitGroup
 // temp key value store for testing
 type dbValue struct {
 	value string
-	*shared.Time
+	time  shared.Time
 }
 
 var db map[string]*dbValue
 var serverListener net.Listener
-
 var serverCalls map[int]*rpcClient
-
+var serverId int
 var term bool
 
 func main() {
+	f, err := os.OpenFile("output", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	defer f.Close()
+	log.SetOutput(f)
 
 	// Use the -term flag to run  the server as a command line program. Server
 	// will wait for commands from stdin. Useful for debugging and for a real
@@ -45,10 +47,12 @@ func main() {
 		args = os.Args[2:]
 	}
 
-	serverId, err := strconv.Atoi(args[0])
+	serverId, err = strconv.Atoi(args[0])
 	if err != nil {
 		log.Println(err)
 	}
+
+	log.Printf("Server reading in serverId %v \n", serverId)
 
 	// set up key value store
 	db = make(map[string]*dbValue)

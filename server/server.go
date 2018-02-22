@@ -87,16 +87,20 @@ func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
 
 // actual kv functions
 func put(args *shared.Args, reply *shared.Response) error {
+	// increment client's time by 1
+	incTime(&args.Time)
+	log.Printf("Put: server: time %v \n", args.Time)
 	if v, ok := db[args.Key]; ok {
 		v.value = args.Value
 		// TODO: update to real time
-		v.Time = args.Time
+		// NOTE: right now just incrementing 1 to the time provided by the client
+		v.time = args.Time
 	} else {
-		db[args.Key] = &dbValue{value: args.Value, Time: args.Time}
+		db[args.Key] = &dbValue{value: args.Value, time: args.Time}
 	}
 	// fmt.Println("new db entry:")
 	// fmt.Printf(db[args.Key].value)
-	reply.Time = db[args.Key].Time
+	reply.Time = db[args.Key].time
 	// fmt.Printf("%s:%s \n", args.Key, args.Value)
 	return nil
 }
@@ -106,7 +110,7 @@ func get(args *shared.Args, reply *shared.Response) error {
 	// TODO: verify time stamp
 	if v, ok := db[args.Key]; ok {
 		val = v.value
-		reply.Time = v.Time
+		reply.Time = v.time
 	} else {
 		val = shared.ERR_KEY
 	}
@@ -117,4 +121,12 @@ func get(args *shared.Args, reply *shared.Response) error {
 	// reply.Result = "done"
 	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
 	return nil
+}
+
+func incTime(time *shared.Time) {
+	if serverId < shared.ServerStart || serverId >= (10+shared.ServerStart) {
+		log.Printf("server exceeds the slot given in the current timestamp: id %v \n", serverId)
+		return
+	}
+	time.Clock[serverId-shared.ServerStart+shared.MaxClient]++
 }

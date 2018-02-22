@@ -5,7 +5,7 @@ type Args struct {
 	Msg   string
 	Key   string
 	Value string
-	*Time
+	Time  Time
 }
 
 type NotifyArgs struct {
@@ -14,10 +14,9 @@ type NotifyArgs struct {
 }
 
 // we might want to have multiple args struct for different calls
-
 type Response struct {
 	Result string
-	*Time
+	Time   Time
 }
 
 type Time struct {

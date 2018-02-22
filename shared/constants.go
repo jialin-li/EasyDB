@@ -13,6 +13,8 @@ const (
 	ClientStart = 0
 	ServerStart = 1000
 
+	MaxClient = 5
+
 	ERR_DEP = "ERR_DEP"
 	ERR_KEY = "ERR_KEY"
 )
