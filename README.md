@@ -1,7 +1,10 @@
 # EasyDB
 
-### Building
-`$ make`
+### Building (with debug prints for `make test`
+`$ make`  
+
+### Building for release (no debug prints)
+`$ make release`  
 
 ### Running
 `$ cd bin/`  
