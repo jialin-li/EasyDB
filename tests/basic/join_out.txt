@@ -1,0 +1,10 @@
+CMD: joinServer 0
+notify from: 1000
+CMD: joinServer 1
+notify from: 1001
+CMD: joinServer 2
+notify from: 1002
+CMD: joinClient 3 0
+notify from: 0
+CMD: joinClient 4 0
+notify from: 1

@@ -1,10 +1,14 @@
+Tags = DEBUG
+
 all:
-	./scripts/build.sh
+	./scripts/build.sh $(Tags)
 
 install:
 	./scripts/install.sh
 	
 test: 
-	cd bin/ && \
-	cat ../tests/test1.txt | ./master
-	#./../scripts/test.sh
+	./scripts/test.sh
+
+release:
+	./scripts/build.sh
+.PHONY: release all test install

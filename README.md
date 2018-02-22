@@ -8,7 +8,18 @@
 `$ ./master`  
 
 ### Testing
+Will run every test case available in `tests/`  
 `$ make & make test`  
+
+___
+
+### Creating a test case
+Tests go in the `tests/` directory. They can be in `tests/` or a subdirectory 1
+level deep in `tests/`  
+  
+Inputs files are named as `{name}.txt` (empty lines are ignored)  
+Ouput files are named as `{name}_out.txt`  
+Both should be in the same directory.  
 
 ___
 
@@ -22,7 +33,4 @@ ___
 
 ### TODO
 * Look into switching to bufio.Scanner or fmt.Fscanf
-* Extract internal functions from client and server's shared interface
-implementaion
-* Use TcpConn instead?
 * Make sure this can be compiled standalone
