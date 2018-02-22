@@ -11,4 +11,8 @@ test:
 
 release:
 	./scripts/build.sh
-.PHONY: release all test install
+
+clean:
+	./scripts/clean.sh
+
+.PHONY: release all test install clean

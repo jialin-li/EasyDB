@@ -2,6 +2,8 @@
 
 . scripts/util.sh
 
+./scripts/clean.sh 2>/dev/null
+
 # does not work yet with args
 #if [ ${#} -ne 0 ]; then
     #go build -o ${OUTPUT}/master ${P}/master 

@@ -1,0 +1,21 @@
+CMD: joinServer 1
+notify from: 1000
+CMD: joinClient 0 1
+notify from: 0
+CMD: put 0 1 test
+CMD: get 0 1
+1:test
+CMD: put 0 2 test2
+CMD: get 0 2
+2:test2
+CMD: get 0 3
+3:ERR_KEY
+CMD: put 0 3 test3
+CMD: put 0 2 test3
+CMD: put 0 1 test3
+CMD: get 0 1
+1:test3
+CMD: get 0 2
+2:test3
+CMD: get 0 3
+3:test3
