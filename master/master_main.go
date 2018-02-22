@@ -58,12 +58,16 @@ func main() {
 		text, err := reader.ReadString('\n')
 
 		if err != nil {
-			log.Println(err)
 			break
 		}
 
 		// remove the newline character
 		text = text[:len(text)-1]
+		if text == "" {
+			continue
+		}
+
+		outputln("CMD:", text)
 
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":
@@ -129,6 +133,7 @@ func main() {
 			}
 
 		case "stabilize":
+			outputln(strs[1])
 			fmt.Println(strs[1])
 		case "printStore":
 			var serverId int

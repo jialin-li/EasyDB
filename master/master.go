@@ -114,6 +114,7 @@ func (*Master) Notify(args *shared.NotifyArgs, reply *shared.Response) error {
 			}
 		}
 	}
+	outputln("notify from:", args.ID)
 
 	if term {
 		IdMap[args.ID] = args.ID

@@ -1,0 +1,21 @@
+joinServer 1
+
+joinClient 0 1
+
+put 0 1 test
+get 0 1
+
+put 0 2 test2
+get 0 2
+
+get 0 3
+
+put 0 3 test3
+put 0 2 test3
+put 0 1 test3
+get 0 1
+
+get 0 2
+
+get 0 3
+
