@@ -1,7 +1,7 @@
-Tags = DEBUG
+ARGS = -tags DEBUG
 
 all:
-	./scripts/build.sh $(Tags)
+	./scripts/build.sh $(ARGS)
 
 install:
 	./scripts/install.sh

@@ -13,6 +13,8 @@
 mkdir output -p
 cd bin/
 
+#set -x
+
 for t in $(find ../tests -type f -name "*.txt" | grep -v "_out"); do
     dir=$(echo $t | awk -F'/' '{print $(NF-1)}')
     file=$(echo $t | awk -F'/' '{print $NF}')
@@ -29,6 +31,7 @@ for t in $(find ../tests -type f -name "*.txt" | grep -v "_out"); do
     else
         green "==========PASS=========="
     fi
+    ./../scripts/clean.sh 2>/dev/null
     #echo "============================================================"
-
 done
+
