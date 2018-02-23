@@ -20,7 +20,7 @@ var serverCalls map[int]*rpcClient
 var keyTimes map[string]*shared.Time
 
 // tracking our own id
-var clientId int
+var clientId = -1
 
 var wg sync.WaitGroup
 
@@ -43,7 +43,8 @@ func main() {
 	// var clientId, serverId int
 
 	// if we fail to extract our id, we should probably exit instead
-	clientId, err := strconv.Atoi(args[0])
+	var err error
+	clientId, err = strconv.Atoi(args[0])
 	if err != nil {
 		log.Println(err)
 	}
