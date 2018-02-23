@@ -1,3 +1,4 @@
+./scripts/clean.sh 2>/dev/null
 P="github.com/jialin-li/EasyDB"
 OUTPUT="bin"
 if [ ${#} -ne 1 ]; then
