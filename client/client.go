@@ -39,7 +39,7 @@ func (t *rpcClient) put(key, value string) error {
 		// update our time and add it to the map
 		incTime(&reply.Time)
 		keyTimes[key] = &reply.Time
-		log.Printf("Put client: %s:%s, time %v \n", key, value, reply.Time)
+		shared.Outputf("client put: %s:%s, time %v \n", key, value, reply.Time)
 	}
 	// TODO: read the time stamp from reply and do things with it
 	return err

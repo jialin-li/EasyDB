@@ -35,11 +35,11 @@ func (*KVServer) Terminate(args *shared.Args, reply *shared.Response) error {
 
 // Ask the server to connect to another server
 func (*KVServer) Connect(args *shared.Args, reply *shared.Response) error {
-	fmt.Println("trying to connect to:", args.Value)
 	serverId, err := strconv.Atoi(args.Value)
 	if err != nil {
 		log.Println("server error:", err)
 	}
+	shared.Outputln("server: connected to server")
 
 	conn, _ := shared.Dial(shared.BasePort + serverId)
 	serverCalls[serverId] = &rpcClient{client: rpc.NewClient(conn)}
@@ -55,13 +55,13 @@ func (*KVServer) DumpStore(args *shared.Args, reply *shared.Response) error {
 
 // Disconnect if we are clients of any other servers
 func (*KVServer) Disconnect(args *shared.Args, reply *shared.Response) error {
-	fmt.Println("trying to disconnect to:", args.Value)
 	// server id that we are going to disconnect from
 	serverId, err := strconv.Atoi(args.Value)
 	if err != nil {
 		log.Println(err)
 	}
-	//fmt.Println("disconnecting from:", serverId)
+	shared.Outputln("server: disconnected from server")
+
 	err = serverCalls[serverId].client.Close()
 	// delete the connection from the map of server calls
 	delete(serverCalls, serverId)
@@ -89,7 +89,7 @@ func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
 func put(args *shared.Args, reply *shared.Response) error {
 	// increment client's time by 1
 	incTime(&args.Time)
-	log.Printf("Put: server: time %v \n", args.Time)
+	shared.Outputf("server: time %v \n", args.Time)
 	if v, ok := db[args.Key]; ok {
 		v.value = args.Value
 		// TODO: update to real time

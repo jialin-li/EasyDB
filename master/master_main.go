@@ -2,10 +2,8 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/rpc"
@@ -69,7 +67,7 @@ func main() {
 			continue
 		}
 
-		outputln("CMD:", text)
+		shared.Outputln("CMD:", text)
 
 		switch strs := strings.Split(text, " "); strs[0] {
 		case "joinServer":
@@ -135,7 +133,7 @@ func main() {
 			}
 
 		case "stabilize":
-			outputln(strs[1])
+			shared.Outputln(strs[1])
 			fmt.Println(strs[1])
 		case "printStore":
 			var serverId int
@@ -193,20 +191,8 @@ func joinServer(id int) error {
 
 	// start a new server
 	server := exec.Command(serverPath, strconv.Itoa(sid))
-	stdoutIn, _ := server.StdoutPipe()
-	stderrIn, _ := server.StderrPipe()
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	//var errStdout, errStderr error
-	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
-	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
-	go func() {
-		//_, _, err := server.StdoutPipe()
-		io.Copy(stdout, stdoutIn)
-	}()
-	go func() {
-		io.Copy(stderr, stderrIn)
-	}()
+	server.Stdout = os.Stdout
+	server.Stderr = os.Stderr
 
 	err := server.Start()
 
@@ -239,6 +225,9 @@ func joinClient(clientId, serverId int) error {
 		clientPath,
 		strconv.Itoa(cid),
 		strconv.Itoa(IdMap[serverId]))
+	client.Stdout = os.Stdout
+	client.Stderr = os.Stderr
+
 	err := client.Start()
 
 	// wait for client to notify us before proceeding

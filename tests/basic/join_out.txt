@@ -1,8 +1,14 @@
 CMD: joinServer 0
 notify from: 1000
 CMD: joinServer 1
+server: connected to server
+server: connected to server
 notify from: 1001
 CMD: joinServer 2
+server: connected to server
+server: connected to server
+server: connected to server
+server: connected to server
 notify from: 1002
 CMD: joinClient 3 0
 notify from: 0

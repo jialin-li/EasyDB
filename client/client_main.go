@@ -25,9 +25,9 @@ var clientId int
 var wg sync.WaitGroup
 
 func main() {
-	f, err := os.OpenFile("output", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	defer f.Close()
-	log.SetOutput(f)
+	//f, err := os.OpenFile("output", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	//defer f.Close()
+	//log.SetOutput(f)
 
 	// Use the -term flag to run  the client as a command line program. Client
 	// will wait for commands from stdin. Useful for debugging and for a real
