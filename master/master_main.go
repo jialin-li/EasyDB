@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/rpc"
@@ -191,6 +193,21 @@ func joinServer(id int) error {
 
 	// start a new server
 	server := exec.Command(serverPath, strconv.Itoa(sid))
+	stdoutIn, _ := server.StdoutPipe()
+	stderrIn, _ := server.StderrPipe()
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	//var errStdout, errStderr error
+	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
+	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
+	go func() {
+		//_, _, err := server.StdoutPipe()
+		io.Copy(stdout, stdoutIn)
+	}()
+	go func() {
+		io.Copy(stderr, stderrIn)
+	}()
+
 	err := server.Start()
 
 	// wait for server to notify us before proceeding
