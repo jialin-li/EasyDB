@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/rpc"
@@ -50,7 +51,14 @@ func (t *rpcClient) get(key string) string {
 	var reply shared.Response
 	err := t.client.Call("KVClient.Get", args, &reply)
 	if err != nil {
-		log.Println("client error:", err)
+		switch err.Error() {
+		case shared.ERR_DEP:
+			fallthrough
+		case shared.ERR_KEY:
+			return fmt.Sprintf("%s:%s", key, err)
+		default:
+			log.Println("client error:", err)
+		}
 	}
 	return reply.Result
 }

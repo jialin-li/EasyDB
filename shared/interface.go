@@ -59,3 +59,9 @@ type Master interface {
 	// Notify the master that it's up
 	Notify(args *NotifyArgs, reply *Response) error
 }
+
+type DepError struct {
+}
+
+type KeyError struct {
+}

@@ -30,16 +30,16 @@ func (t *rpcClient) put(key, value string) error {
 	if v, ok := keyTimes[key]; ok {
 		args.Time = *v
 	}
+	incTime(&args.Time)
 	reply := &shared.Response{}
 	err := t.client.Call("KVServer.Put", args, reply)
-	// if err != nil {
-	// 	log.Fatal("server error:", err)
-	// }
+
 	if err == nil {
 		// update our time and add it to the map
-		incTime(&reply.Time)
+		reply.Time.Update(&args.Time)
 		keyTimes[key] = &reply.Time
-		shared.Outputf("client put: %s:%s, time %v \n", key, value, reply.Time)
+		shared.Outputf("client: time:%v, id:%v, %s:%s\n",
+			reply.Time, clientId, key, value)
 	}
 	// TODO: read the time stamp from reply and do things with it
 	return err
@@ -47,11 +47,21 @@ func (t *rpcClient) put(key, value string) error {
 
 func (t *rpcClient) get(key string, reply *shared.Response) error {
 	args := &shared.Args{Key: key}
+	// retrieve client's time stamp if it exists
+	if v, ok := keyTimes[key]; ok {
+		args.Time = *v
+	}
+
+	shared.Outputf("client: time:%v, id:%v\n", args.Time, clientId)
 	err := t.client.Call("KVServer.Get", args, reply)
-	// ?? do we need to deal with time stamp?
-	// if err != nil {
-	// 	log.Fatal("server error:", err)
-	// }
+
+	if err == nil {
+		// update our time
+		reply.Time.Update(&args.Time)
+		keyTimes[key] = &reply.Time
+		shared.Outputf("client: time:%v, id:%v, %s\n",
+			reply.Time, clientId, reply.Result)
+	}
 	return err
 }
 

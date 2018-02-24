@@ -1,0 +1,26 @@
+CMD: joinServer 0
+notify from: 1000
+CMD: joinClient 1 0
+notify from: 0
+CMD: joinClient 2 0
+notify from: 1
+CMD: put 1 will lin
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, will:lin
+CMD: put 2 will lin
+server: time:{[1 1 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[1 1 0 0 0 2 0 0 0 0]}, id:1, will:lin
+CMD: get 1 will
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0
+server: time:{[1 1 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[1 1 0 0 0 2 0 0 0 0]}, id:0, will:lin
+will:lin
+CMD: joinServer 3
+server: connected to server
+server: connected to server
+notify from: 1001
+CMD: createConnection 2 3
+CMD: breakConnection 2 0
+CMD: put 2 will 3
+server: time:{[1 2 0 0 0 2 1 0 0 0]}, id:1001
+client: time:{[1 2 0 0 0 2 1 0 0 0]}, id:1, will:3

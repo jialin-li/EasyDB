@@ -1,0 +1,10 @@
+joinServer 0
+joinClient 1 0
+joinClient 2 0
+put 1 will lin
+put 2 will lin
+get 1 will
+joinServer 3
+createConnection 2 3
+breakConnection 2 0
+put 2 will 3

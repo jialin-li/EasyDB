@@ -2,20 +2,54 @@ CMD: joinServer 1
 notify from: 1000
 CMD: joinClient 0 1
 notify from: 0
+CMD: put 0 1 t
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, 1:t
 CMD: put 0 1 test
+server: time:{[2 0 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0, 1:test
 CMD: get 0 1
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0
+server: time:{[2 0 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0, 1:test
+1:test
+CMD: get 0 1
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0
+server: time:{[2 0 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0, 1:test
 1:test
 CMD: put 0 2 test2
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, 2:test2
 CMD: get 0 2
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, 2:test2
 2:test2
 CMD: get 0 3
+client: time:{[0 0 0 0 0 0 0 0 0 0]}, id:0
 3:ERR_KEY
 CMD: put 0 3 test3
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, 3:test3
 CMD: put 0 2 test3
+server: time:{[2 0 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0, 2:test3
 CMD: put 0 1 test3
+server: time:{[3 0 0 0 0 3 0 0 0 0]}, id:1000
+client: time:{[3 0 0 0 0 3 0 0 0 0]}, id:0, 1:test3
 CMD: get 0 1
+client: time:{[3 0 0 0 0 3 0 0 0 0]}, id:0
+server: time:{[3 0 0 0 0 3 0 0 0 0]}, id:1000
+client: time:{[3 0 0 0 0 3 0 0 0 0]}, id:0, 1:test3
 1:test3
 CMD: get 0 2
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0
+server: time:{[2 0 0 0 0 2 0 0 0 0]}, id:1000
+client: time:{[2 0 0 0 0 2 0 0 0 0]}, id:0, 2:test3
 2:test3
 CMD: get 0 3
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0
+server: time:{[1 0 0 0 0 1 0 0 0 0]}, id:1000
+client: time:{[1 0 0 0 0 1 0 0 0 0]}, id:0, 3:test3
 3:test3

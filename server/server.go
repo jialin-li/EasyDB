@@ -87,38 +87,38 @@ func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
 
 // actual kv functions
 func put(args *shared.Args, reply *shared.Response) error {
-	// increment client's time by 1
-	incTime(&args.Time)
-	shared.Outputf("server: time %v \n", args.Time)
 	if v, ok := db[args.Key]; ok {
 		v.value = args.Value
-		// TODO: update to real time
-		// NOTE: right now just incrementing 1 to the time provided by the client
-		v.time = args.Time
+		//shared.Outputf("prev server: time %v \n", v.time)
+		v.time.Update(&args.Time)
 	} else {
 		db[args.Key] = &dbValue{value: args.Value, time: args.Time}
 	}
-	// fmt.Println("new db entry:")
-	// fmt.Printf(db[args.Key].value)
+	// increment server's time by 1
+	incTime(&db[args.Key].time)
+	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].time, serverId)
 	reply.Time = db[args.Key].time
-	// fmt.Printf("%s:%s \n", args.Key, args.Value)
+
 	return nil
 }
 
 func get(args *shared.Args, reply *shared.Response) error {
 	var val string
-	// TODO: verify time stamp
+	// check if key is present in server's db
 	if v, ok := db[args.Key]; ok {
+		// if key exists but the client has a later timestamp for that key,
+		// then return DepError
+		if args.Time.IsLaterThan(&db[args.Key].time) {
+			return &shared.DepError{}
+		}
+		// otherwise we return our value with it's newer timestamp
 		val = v.value
 		reply.Time = v.time
 	} else {
-		val = shared.ERR_KEY
+		return &shared.KeyError{}
 	}
-	// fmt.Println("new db entry:")
-	// fmt.Printf(db[args.Key].value)
+	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].time, serverId)
 
-	// fmt.Printf("%s:%s \n", args.Key, args.Value)
-	// reply.Result = "done"
 	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
 	return nil
 }

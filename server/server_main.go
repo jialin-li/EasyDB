@@ -26,7 +26,7 @@ type dbValue struct {
 var db map[string]*dbValue
 var serverListener net.Listener
 var serverCalls map[int]*rpcClient
-var serverId int
+var serverId = -1
 var term bool
 
 func main() {
