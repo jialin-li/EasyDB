@@ -133,8 +133,7 @@ func main() {
 			}
 
 		case "stabilize":
-			shared.Outputln(strs[1])
-			fmt.Println(strs[1])
+			stabilize()
 		case "printStore":
 			var serverId int
 			_, err := fmt.Sscanf(
@@ -239,6 +238,25 @@ func joinClient(clientId, serverId int) error {
 	return err
 }
 
+func breakConnection(id1, id2 int) error {
+	id1, ok := IdMap[id1]
+	if !ok {
+		return fmt.Errorf("id1 is not a valid id %d ", id1)
+	}
+	id2, ok = IdMap[id2]
+	if !ok {
+		return fmt.Errorf("id2 is not a valid id %d ", id2)
+	}
+
+	if isClientId(id1) {
+		return conns[id1].clientDisconnect(id2)
+	} else if isClientId(id2) {
+		return conns[id2].clientDisconnect(id1)
+	}
+	conns[id2].serverDisconnect(id1)
+	return conns[id1].serverDisconnect(id2)
+}
+
 func createConnection(id1, id2 int) error {
 	id1, ok := IdMap[id1]
 	if !ok {
@@ -258,23 +276,28 @@ func createConnection(id1, id2 int) error {
 	return conns[id1].serverConnect(id2)
 }
 
-func breakConnection(id1, id2 int) error {
-	id1, ok := IdMap[id1]
-	if !ok {
-		return fmt.Errorf("id1 is not a valid id %d ", id1)
-	}
-	id2, ok = IdMap[id2]
-	if !ok {
-		return fmt.Errorf("id2 is not a valid id %d ", id2)
-	}
+func stabilize() {
+	var stabilizeWait sync.WaitGroup
 
-	if isClientId(id1) {
-		return conns[id1].clientDisconnect(id2)
-	} else if isClientId(id2) {
-		return conns[id2].clientDisconnect(id1)
+	args := &shared.Args{}
+	// send a stabilize call to every server
+	for id, t := range conns {
+		// only send stabilize to servers
+		if isClientId(id) {
+			continue
+		}
+		stabilizeWait.Add(1)
+		// make rpc calls in new go routines
+		go func(serverId int) {
+			defer stabilizeWait.Done()
+			err := t.client.Call("KVServer.Stabilize", args, nil)
+			if err != nil {
+				log.Println(err)
+			}
+		}(id)
 	}
-	conns[id2].serverDisconnect(id1)
-	return conns[id1].serverDisconnect(id2)
+	// wait for all BulkLoad rpc calls to finish
+	stabilizeWait.Wait()
 }
 
 func printStore(serverId int) {

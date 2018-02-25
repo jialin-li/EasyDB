@@ -38,6 +38,8 @@ type Server interface {
 	Put(args *Args, reply *Response) error
 	// Get a Value based on a key
 	Get(args *Args, reply *Response) error
+	// Load a series of values along with their timestamp
+	BulkLoad(args *Args, reply *Response) error
 }
 
 // exposed so master can talk to client through this

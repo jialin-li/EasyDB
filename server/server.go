@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/rpc"
 	"strconv"
+	"sync"
 
 	"github.com/jialin-li/EasyDB/shared"
 )
@@ -72,7 +73,7 @@ func (*KVServer) Disconnect(args *shared.Args, reply *shared.Response) error {
 
 // No more new write requests will be send until the next write
 func (*KVServer) Stabilize(args *shared.Args, reply *shared.Response) error {
-	return nil
+	return bulkLoad()
 }
 
 // Put a KV pair
@@ -83,6 +84,11 @@ func (*KVServer) Put(args *shared.Args, reply *shared.Response) error {
 // Get a Value based on a key
 func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
 	return get(args, reply)
+}
+
+// Load a series of key:value pairs along with their timestamp
+func (*KVServer) BulkLoad(args *shared.Args, reply *shared.Response) error {
+	return bulkSave(args, reply)
 }
 
 // actual kv functions
@@ -120,6 +126,34 @@ func get(args *shared.Args, reply *shared.Response) error {
 	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].time, serverId)
 
 	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
+	return nil
+}
+
+func bulkLoad() error {
+	var stabilizeWait sync.WaitGroup
+	// TODO: gather values and serialize
+	args := &shared.Args{Key: strconv.Itoa(serverId)}
+
+	// send our entire database to every connected server
+	for sid := range serverCalls {
+		log.Printf("sending bulk to server: %v from %v", sid, serverId)
+		stabilizeWait.Add(1)
+		// make rpc calls in new go routines
+		go func(id int) {
+			err := serverCalls[id].client.Call("KVServer.BulkLoad", args, nil)
+			if err == rpc.ErrShutdown {
+				delete(serverCalls, id)
+			}
+			stabilizeWait.Done()
+		}(sid)
+	}
+	// wait for all BulkLoad rpc calls to finish
+	stabilizeWait.Wait()
+	return nil
+}
+
+func bulkSave(args *shared.Args, reply *shared.Response) error {
+	shared.Outputf("server %v saving data from %v\n", serverId, args.Key)
 	return nil
 }
 
