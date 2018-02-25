@@ -288,13 +288,13 @@ func stabilize() {
 		}
 		stabilizeWait.Add(1)
 		// make rpc calls in new go routines
-		go func(serverId int) {
+		go func(t *rpcClient) {
 			defer stabilizeWait.Done()
 			err := t.client.Call("KVServer.Stabilize", args, nil)
 			if err != nil {
 				log.Println(err)
 			}
-		}(id)
+		}(t)
 	}
 	// wait for all BulkLoad rpc calls to finish
 	stabilizeWait.Wait()

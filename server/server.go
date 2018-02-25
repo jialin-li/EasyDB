@@ -16,9 +16,7 @@ type rpcClient struct {
 }
 
 func (t *rpcClient) notify(id int) error {
-	// fmt.Println("About to notify master that client %s is up", id)
 	args := &shared.NotifyArgs{Type: shared.ServerType, ID: id}
-	// var reply shared.Response
 	err := t.client.Call("Master.Notify", args, nil)
 	if err != nil {
 		log.Fatal("server error:", err)
@@ -87,23 +85,23 @@ func (*KVServer) Get(args *shared.Args, reply *shared.Response) error {
 }
 
 // Load a series of key:value pairs along with their timestamp
-func (*KVServer) BulkLoad(args *shared.Args, reply *shared.Response) error {
-	return bulkSave(args, reply)
+func (*KVServer) BulkLoad(
+	newDb *map[string]*shared.DbValue, reply *shared.Response) error {
+	return bulkSave(newDb, reply)
 }
 
 // actual kv functions
 func put(args *shared.Args, reply *shared.Response) error {
 	if v, ok := db[args.Key]; ok {
-		v.value = args.Value
-		//shared.Outputf("prev server: time %v \n", v.time)
-		v.time.Update(&args.Time)
+		v.Value = args.Value
+		v.Time.Update(&args.Time)
 	} else {
-		db[args.Key] = &dbValue{value: args.Value, time: args.Time}
+		db[args.Key] = &shared.DbValue{Value: args.Value, Time: args.Time}
 	}
 	// increment server's time by 1
-	incTime(&db[args.Key].time)
-	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].time, serverId)
-	reply.Time = db[args.Key].time
+	incTime(&db[args.Key].Time)
+	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].Time, serverId)
+	reply.Time = db[args.Key].Time
 
 	return nil
 }
@@ -114,16 +112,16 @@ func get(args *shared.Args, reply *shared.Response) error {
 	if v, ok := db[args.Key]; ok {
 		// if key exists but the client has a later timestamp for that key,
 		// then return DepError
-		if args.Time.IsLaterThan(&db[args.Key].time) {
+		if args.Time.IsLaterThan(&db[args.Key].Time) {
 			return &shared.DepError{}
 		}
 		// otherwise we return our value with it's newer timestamp
-		val = v.value
-		reply.Time = v.time
+		val = v.Value
+		reply.Time = v.Time
 	} else {
 		return &shared.KeyError{}
 	}
-	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].time, serverId)
+	shared.Outputf("server: time:%v, id:%v\n", db[args.Key].Time, serverId)
 
 	reply.Result = fmt.Sprintf("%s:%s", args.Key, val)
 	return nil
@@ -131,29 +129,34 @@ func get(args *shared.Args, reply *shared.Response) error {
 
 func bulkLoad() error {
 	var stabilizeWait sync.WaitGroup
-	// TODO: gather values and serialize
-	args := &shared.Args{Key: strconv.Itoa(serverId)}
 
 	// send our entire database to every connected server
-	for sid := range serverCalls {
+	for sid, t := range serverCalls {
 		log.Printf("sending bulk to server: %v from %v", sid, serverId)
 		stabilizeWait.Add(1)
 		// make rpc calls in new go routines
-		go func(id int) {
-			err := serverCalls[id].client.Call("KVServer.BulkLoad", args, nil)
+		go func(id int, t *rpcClient) {
+			err := t.client.Call("KVServer.BulkLoad", &db, nil)
 			if err == rpc.ErrShutdown {
 				delete(serverCalls, id)
 			}
 			stabilizeWait.Done()
-		}(sid)
+		}(sid, t)
 	}
 	// wait for all BulkLoad rpc calls to finish
 	stabilizeWait.Wait()
 	return nil
 }
 
-func bulkSave(args *shared.Args, reply *shared.Response) error {
-	shared.Outputf("server %v saving data from %v\n", serverId, args.Key)
+var mutex sync.Mutex
+
+func bulkSave(newDb *map[string]*shared.DbValue, reply *shared.Response) error {
+	shared.Outputf("server %v saving data\n", serverId)
+	mutex.Lock()
+	for k, v := range *newDb {
+		shared.Outputf("%s:%s\n", k, v.Value)
+	}
+	mutex.Unlock()
 	return nil
 }
 

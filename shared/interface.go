@@ -23,6 +23,11 @@ type Time struct {
 	Clock [10]int
 }
 
+type DbValue struct {
+	Value string
+	Time  Time
+}
+
 type Server interface {
 	// Terminate a server
 	Terminate(args *Args, reply *Response) error
@@ -39,7 +44,7 @@ type Server interface {
 	// Get a Value based on a key
 	Get(args *Args, reply *Response) error
 	// Load a series of values along with their timestamp
-	BulkLoad(args *Args, reply *Response) error
+	BulkLoad(args *map[string]*DbValue, reply *Response) error
 }
 
 // exposed so master can talk to client through this

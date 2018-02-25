@@ -17,13 +17,12 @@ import (
 
 var wg sync.WaitGroup
 
-// temp key value store for testing
-type dbValue struct {
-	value string
-	time  shared.Time
-}
+//type dbValue struct {
+//value string
+//time  shared.Time
+//}
 
-var db map[string]*dbValue
+var db map[string]*shared.DbValue
 var serverListener net.Listener
 var serverCalls map[int]*rpcClient
 var serverId = -1
@@ -54,7 +53,7 @@ func main() {
 	}
 
 	// set up key value store
-	db = make(map[string]*dbValue)
+	db = make(map[string]*shared.DbValue)
 
 	serverCalls = make(map[int]*rpcClient)
 
@@ -114,7 +113,7 @@ func parseCommands() {
 
 func printStore() {
 	for k, v := range db {
-		fmt.Println(k + ":" + v.value)
+		fmt.Println(k + ":" + v.Value)
 	}
 }
 
@@ -125,7 +124,7 @@ func dumpStore() string {
 
 	var store string
 	for k, v := range db {
-		store += k + ":" + v.value + " "
+		store += k + ":" + v.Value + " "
 	}
 	// cut off last space
 	return store[:len(store)-1]
