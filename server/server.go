@@ -153,8 +153,16 @@ var mutex sync.Mutex
 func bulkSave(newDb *map[string]*shared.DbValue, reply *shared.Response) error {
 	shared.Outputf("server %v saving data\n", serverId)
 	mutex.Lock()
-	for k, v := range *newDb {
-		shared.Outputf("%s:%s\n", k, v.Value)
+	for k, v1 := range *newDb {
+		if v2, ok := db[k]; !ok {
+			db[k] = v1
+		} else {
+			if v1.Time.IsLaterThan(&v2.Time) {
+				v2.Value = v1.Value
+			}
+			v2.Time.Update(&v2.Time)
+		}
+		// shared.Outputf("%s:%s\n", k, v.Value)
 	}
 	mutex.Unlock()
 	return nil

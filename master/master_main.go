@@ -16,12 +16,6 @@ import (
 	"github.com/jialin-li/EasyDB/shared"
 )
 
-type connection struct {
-	Type int
-	Port int
-	Conn net.Conn
-}
-
 var IdMap map[int]int
 var availServerIds []int
 var conns map[int]*rpcClient
@@ -31,8 +25,6 @@ var serverId = shared.ServerStart
 
 const serverPath = "./server"
 const clientPath = "./client"
-
-var port = 1234
 
 var wg sync.WaitGroup
 
@@ -143,8 +135,11 @@ func main() {
 				continue
 			}
 			// translate to internal server id
-			serverId = IdMap[serverId]
-			printStore(serverId)
+			if serverId, ok := IdMap[serverId]; ok {
+				printStore(serverId)
+			} else {
+				log.Println("Provided server id is invalid")
+			}
 
 		case "put":
 			var key, value string
@@ -156,8 +151,11 @@ func main() {
 				continue
 			}
 			// translate to internal client id
-			clientId = IdMap[clientId]
-			put(clientId, key, value)
+			if clientId, ok := IdMap[clientId]; ok {
+				put(clientId, key, value)
+			} else {
+				log.Println("Provided client id is invalid")
+			}
 
 		case "get":
 			var key string
@@ -169,8 +167,11 @@ func main() {
 				continue
 			}
 			// translate to internal client id
-			clientId = IdMap[clientId]
-			get(clientId, key)
+			if clientId, ok := IdMap[clientId]; ok {
+				get(clientId, key)
+			} else {
+				log.Println("Provided client id is invalid")
+			}
 
 		default:
 			fmt.Println("bad command")
