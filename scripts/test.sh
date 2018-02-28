@@ -2,7 +2,7 @@
 
 . scripts/util.sh
 
-./scripts/clean.sh 2>/dev/null
+./scripts/clean.sh 2>/dev/null || true
 
 # does not work yet with args
 #if [ ${#} -ne 0 ]; then
@@ -20,18 +20,23 @@ for t in $(find ../tests -type f -name "*.txt" | grep -v "_out"); do
     file=$(echo $t | awk -F'/' '{print $NF}')
     name=$(echo $file | awk -F'.' '{print $1}')
     #echo $t | awk -F'/' '{print "Test: "$(NF-1) "\nFile: "$NF}'
-
-    light_cyan "RUNNING $dir/$file"
-    cat $t | ./master > ../output/${name}.output
-    DIFF=$(diff ../tests/${dir}/${name}_out.txt ../output/${name}.output)
-
-    if [ "$DIFF" != "" ]; then
-        red "==========FAIL=========="
-        diff -U 100000 ../tests/${dir}/${name}_out.txt ../output/${name}.output
+    if [ "$dir" == "performance" ]; then
+        light_cyan "RUNNING TIMING TEST $file"
+        time cat $t | ./master >/dev/null
     else
-        green "==========PASS=========="
+
+        light_cyan "RUNNING $dir/$file"
+        cat $t | ./master > ../output/${name}.output
+        DIFF=$(diff ../tests/${dir}/${name}_out.txt ../output/${name}.output)
+
+        if [ "$DIFF" != "" ]; then
+            red "==========FAIL=========="
+            diff -U 100000 ../tests/${dir}/${name}_out.txt ../output/${name}.output
+        else
+            green "==========PASS=========="
+        fi
     fi
-    ./../scripts/clean.sh 2>/dev/null
-    #echo "============================================================"
+        ./../scripts/clean.sh 2>/dev/null || true
+        #echo "============================================================"
 done
 
