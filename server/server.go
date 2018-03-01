@@ -160,7 +160,7 @@ func bulkSave(newDb *map[string]*shared.DbValue, reply *shared.Response) error {
 			if v1.Time.IsLaterThan(&v2.Time) {
 				v2.Value = v1.Value
 			}
-			v2.Time.Update(&v2.Time)
+			v2.Time.Update(&v1.Time)
 		}
 		// shared.Outputf("%s:%s\n", k, v.Value)
 	}
