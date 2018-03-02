@@ -1,7 +1,7 @@
 # EasyDB
 
 ### Student Information
-Will Lin - wl7524 - wlsaidhi
+Will Lin - wl7524 - wlsaidhi  
 Jialin Li - jl48629 - jialinli 
 
 ### Set up  
@@ -22,8 +22,12 @@ ___
 
 ### Testing
 Will run every test case available in `tests/`  
-`$ make & make test`  
 
+Tests with debug output:  
+`$ make test`  
+
+Tests without debug output:  
+`$ make rtest`  
 ___
 
 ### Directory structure
@@ -76,4 +80,3 @@ servers to ensure all the updates propagate through (in case of a chain connecti
 
 ### TODO
 * Make sure this can be compiled standalone
-* Create a benchmark test
