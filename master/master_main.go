@@ -281,21 +281,23 @@ func stabilize() {
 	var stabilizeWait sync.WaitGroup
 
 	args := &shared.Args{}
-	// send a stabilize call to every server
-	for id, t := range conns {
-		// only send stabilize to servers
-		if isClientId(id) {
-			continue
-		}
-		stabilizeWait.Add(1)
-		// make rpc calls in new go routines
-		go func(t *rpcClient) {
-			defer stabilizeWait.Done()
-			err := t.client.Call("KVServer.Stabilize", args, nil)
-			if err != nil {
-				log.Println(err)
+	for i := 0; i < 5; i++ {
+		// send a stabilize call to every server
+		for id, t := range conns {
+			// only send stabilize to servers
+			if isClientId(id) {
+				continue
 			}
-		}(t)
+			stabilizeWait.Add(1)
+			// make rpc calls in new go routines
+			go func(t *rpcClient) {
+				defer stabilizeWait.Done()
+				err := t.client.Call("KVServer.Stabilize", args, nil)
+				if err != nil {
+					log.Println(err)
+				}
+			}(t)
+		}
 	}
 	// wait for all BulkLoad rpc calls to finish
 	stabilizeWait.Wait()
