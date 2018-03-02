@@ -88,11 +88,12 @@ func (*KVClient) Disconnect(args *shared.Args, reply *shared.Response) error {
 		log.Println(err)
 	}
 	//fmt.Println("disconnecting from:", serverId)
-	err = serverCalls[serverId].client.Close()
-	// delete the connection from the map of server calls
-	delete(serverCalls, serverId)
+	if serverCalls[serverId] != nil {
+		err = serverCalls[serverId].client.Close()
+		// delete the connection from the map of server calls
+		delete(serverCalls, serverId)
+	}
 	//TODO: give appropriate reply if connection does not exist
-
 	return err
 }
 

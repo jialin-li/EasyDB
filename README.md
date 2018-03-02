@@ -1,14 +1,24 @@
 # EasyDB
 
+### Student Information
+Will Lin - wl7524 - wlsaidhi
+Jialin Li - jl48629 - jialinli 
+
+### Set up  
+
+
 ### Building (with debug prints for `make test`)
 `$ make`  
 
 ### Building for release (no debug prints)
 `$ make release`  
 
-### Running
-`$ cd bin/`  
-`$ ./master`  
+___
+
+### Running the system through master
+`$ make release` in the EasyDB directory  
+`$ cd bin`   
+`$ ./master` and you can type in your commands :D  
 
 ### Testing
 Will run every test case available in `tests/`  
@@ -37,15 +47,11 @@ Both should be in the same directory.
 
 ___
 
-### Running the system manually
-`$ cd bin/`  
-`$ ./master`  
-`$ ./server <server id>`  
-`$ ./client <client id>`  
+### Protocol 
 
-___
+For 
+
 
 ### TODO
-* Look into switching to bufio.Scanner or fmt.Fscanf
 * Make sure this can be compiled standalone
 * Create a benchmark test

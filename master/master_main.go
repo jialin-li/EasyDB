@@ -298,9 +298,9 @@ func stabilize() {
 				}
 			}(t)
 		}
+		// wait for all BulkLoad rpc calls to finish
+		stabilizeWait.Wait()
 	}
-	// wait for all BulkLoad rpc calls to finish
-	stabilizeWait.Wait()
 }
 
 func printStore(serverId int) {

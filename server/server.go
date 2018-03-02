@@ -132,7 +132,7 @@ func bulkLoad() error {
 
 	// send our entire database to every connected server
 	for sid, t := range serverCalls {
-		log.Printf("sending bulk to server: %v from %v", sid, serverId)
+		// log.Printf("sending bulk to server: %v from %v", sid, serverId)
 		stabilizeWait.Add(1)
 		// make rpc calls in new go routines
 		go func(id int, t *rpcClient) {
