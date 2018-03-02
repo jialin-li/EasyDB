@@ -16,7 +16,11 @@ add `export GOPATH="$HOME/go"` to .bashrc
 `mkdir -p go/pkg`  
 `mkdir -p go/src/github.com/jialin-li/EasyDB`  
 
-untar project into go/src/github.com/jialin-li/EasyDB
+move project1.tar into go/src/github.com/jialin-li/EasyDB  
+
+`cd go/src/github.com/jialin-li/EasyDB`  
+
+`tar -xvf project1.tar`
 
 ___
 
