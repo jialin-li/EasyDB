@@ -10,12 +10,13 @@
     #exit 0
 #fi
 
-mkdir output -p
+mkdir output/make -p
+mkdir output/release -p
 cd bin/
 
 #set -x
 
-for t in $(find ../tests -type f -name "*.txt" | grep -v "_out"); do
+for t in $(find ../tests/release -type f -name "*.txt" | grep -v "_out"); do
     dir=$(echo $t | awk -F'/' '{print $(NF-1)}')
     file=$(echo $t | awk -F'/' '{print $NF}')
     name=$(echo $file | awk -F'.' '{print $1}')
@@ -26,12 +27,12 @@ for t in $(find ../tests -type f -name "*.txt" | grep -v "_out"); do
     else
 
         light_cyan "RUNNING $dir/$file"
-        cat $t | ./master > ../output/${name}.output
-        DIFF=$(diff ../tests/${dir}/${name}_out.txt ../output/${name}.output)
+        cat $t | ./master > ../output/release/${name}.output
+        DIFF=$(diff ../tests/release/${dir}/${name}_out.txt ../output/release/${name}.output)
 
         if [ "$DIFF" != "" ]; then
             red "==========FAIL=========="
-            diff -U 100000 ../tests/${dir}/${name}_out.txt ../output/${name}.output
+            diff -U 100000 ../tests/release/${dir}/${name}_out.txt ../output/release/${name}.output
         else
             green "==========PASS=========="
         fi

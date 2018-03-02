@@ -6,8 +6,15 @@ all:
 install:
 	./scripts/install.sh
 	
+# tests with debug statements
 test: 
-	./scripts/test.sh
+	make
+	./scripts/make_test.sh
+
+# tests without debug statements
+rtest:
+	make release
+	./scripts/release_test.sh
 
 release:
 	./scripts/build.sh

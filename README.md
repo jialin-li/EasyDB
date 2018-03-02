@@ -22,8 +22,12 @@ ___
 
 ### Testing
 Will run every test case available in `tests/`  
-`$ make & make test`  
 
+Tests with debug output:  
+`$ make test`  
+
+Tests without debug output:  
+`$ make rtest`  
 ___
 
 ### Directory structure
@@ -54,4 +58,3 @@ For
 
 ### TODO
 * Make sure this can be compiled standalone
-* Create a benchmark test
